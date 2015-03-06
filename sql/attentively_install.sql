@@ -42,7 +42,7 @@ INSERT INTO `civicrm_navigation` (`domain_id`, `label`, `name`,`permission`, `pe
 SELECT @parentId := id FROM `civicrm_navigation` WHERE `name` = 'Extensions';
 
 INSERT INTO `civicrm_navigation` (`domain_id`, `label`, `name`, `url`, `permission`, `permission_operator`, `parent_id`, `is_active`, `has_separator`, `weight`) VALUES
-(1, 'Attentive.ly', 'Attentive.ly', 'civicrm/attentivelyauth', 'access CiviCRM', 'AND', @parentId, 1, 1, 1);
+(1, 'Attentive.ly', 'Attentive.ly', 'civicrm/auth', 'access CiviCRM', 'AND', @parentId, 1, 1, 1);
 
 SELECT @parentId := id FROM `civicrm_navigation` WHERE `name` = 'Contacts';
 
