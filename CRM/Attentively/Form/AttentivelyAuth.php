@@ -29,7 +29,7 @@ class CRM_Attentively_Form_AttentivelyAuth extends CRM_Core_Form {
   }
 
   function postProcess() {
-    $systemUrl = CRM_Utils_System::url('civicrm/attentively/callback', NULL, TRUE);
+    $systemUrl = rawurlencode(CRM_Utils_System::url('civicrm/attentively/callback', NULL, TRUE));
     $redirectUri = "http://attentive.ly.jmaconsulting.biz/civicrm/attentively/request?redirect={$systemUrl}"; // Redirect to JMA instance
     CRM_Utils_System::redirect($redirectUri);
   }
