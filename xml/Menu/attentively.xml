@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/contact/view/scores</path>
+    <page_callback>CRM_Attentively_Page_SocialMedia</page_callback>
+    <title>SocialMedia</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/auth</path>
+    <page_callback>CRM_Attentively_Form_AttentivelyAuth</page_callback>
+    <title>Attentively Terms and Conditions</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/attentively/callback</path>
+    <page_callback>CRM_Attentively_Page_AttentivelyCallback</page_callback>
+    <title>Attentively Set Access Token</title>
+    <access_callback>1</access_callback>
+    <is_public>true</is_public>
+  </item>
+</menu>
