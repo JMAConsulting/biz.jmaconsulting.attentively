@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<extension key="biz.jmaconsulting.attentively" type="module">
+  <file>attentively</file>
+  <name>Attentive.ly</name>
+  <description>Attentive.ly</description>
+  <license>AGPL-3.0</license>
+  <maintainer>
+    <author>JMA Consulting</author>
+    <email>joe.murray@jmaconsulting.biz</email>
+  </maintainer>
+  <releaseDate>2014-02-19</releaseDate>
+  <version>1.0</version>
+  <develStage>alpha</develStage>
+  <compatibility>
+    <ver>4.2</ver>
+  </compatibility>
+  <comments>This is a new, undeveloped module</comments>
+  <civix>
+    <namespace>CRM/Attentively</namespace>
+  </civix>
+</extension>
