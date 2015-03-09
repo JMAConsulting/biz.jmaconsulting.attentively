@@ -123,20 +123,22 @@ class CRM_Attentively_BAO_Attentively {
           age = '{$value->age}', city = '{$value->city}', state = '{$value->state}', zip_code = '{$value->zip_code}', metro_area = '{$value->metro_area}', klout_score = '{$value->klout_score}'";
         $dao = CRM_Core_DAO::executeQuery($sql);
         // Store networks
-        foreach ($value->networks as $key => $networks) {
-          $network[$key]['contact_id'] = $value->contact_id;
-          $network[$key]['name'] = $networks->name;
-          $network[$key]['url'] = $networks->url;
+        foreach ($value->networks as $k => $networks) {
+          $network[$key][$k]['contact_id'] = $value->contact_id;
+          $network[$key][$k]['name'] = $networks->name;
+          $network[$key][$k]['url'] = $networks->url;
         }
       }
-      foreach ($network as $key => $value) {
+      foreach ($network as $key => $v) {
+        foreach ($v as $value ) {
         $check = "SELECT id FROM civicrm_attentively_member_network WHERE `contact_id` = '{$value['contact_id']}' AND `name` = '{$value['name']}'";
         $flag = CRM_Core_DAO::singleValueQuery($check);
         if ($flag) 
           continue;
         $query = "INSERT INTO civicrm_attentively_member_network (`contact_id`, `name`, `url`)
           VALUES ( '{$value['contact_id']}', '{$value['name']}', '{$value['url']}' )";
-        $dao = CRM_Core_DAO::executeQuery($query);
+       $dao = CRM_Core_DAO::executeQuery($query);
+        }
       }
     }
   }
