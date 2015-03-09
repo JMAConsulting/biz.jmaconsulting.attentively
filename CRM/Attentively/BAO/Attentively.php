@@ -131,7 +131,8 @@ class CRM_Attentively_BAO_Attentively {
       }
       foreach ($network as $key => $value) {
         $query = "INSERT INTO civicrm_attentively_member_network (`contact_id`, `name`, `url`)
-          VALUES ( '{$value['contact_id']}', '{$value['name']}', '{$value['url']}' )";
+          VALUES ( '{$value['contact_id']}', '{$value['name']}', '{$value['url']}' )
+          ON DUPLICATE KEY UPDATE member_id = '{$value['contact_id']}', name = '{$value['name']}', url = '{$value['url']}'";
         $dao = CRM_Core_DAO::executeQuery($query);
       }
     }
