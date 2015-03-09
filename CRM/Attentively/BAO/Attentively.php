@@ -200,7 +200,7 @@ class CRM_Attentively_BAO_Attentively {
         );
         $network[$dao->name]['image'] = self::getGravatar($email, TRUE, $atts);
       }
-      else {
+      elseif ($dao->name != 'klout') {
         $network[$dao->name]['url'] = $dao->url;
         $network[$dao->name]['image'] = '<img class="network-image" src="' .$config->extensionsURL. '/biz.jmaconsulting.attentively/images/' .$dao->name. '.png" style="width:80px !important; height:80px !important;"/>';
       }
@@ -230,7 +230,7 @@ class CRM_Attentively_BAO_Attentively {
 
   static public function getCount($cid) {
     $sql = "SELECT count(id) FROM civicrm_attentively_member_network
-      WHERE contact_id = {$cid}";
+      WHERE contact_id = {$cid} and name <> 'klout'";
     $count = CRM_Core_DAO::singleValueQuery($sql);
     return $count;
   } 

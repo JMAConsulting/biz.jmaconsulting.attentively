@@ -24,7 +24,7 @@
 
 .klout-content {ldelim}
     margin-top: -48px;
-    margin-left: -5px;
+    margin-left: -8px;
     padding: 13px;
     font-size: 21px;
     font-weight: bold; 
