@@ -210,10 +210,6 @@ class CRM_Attentively_BAO_Attentively {
       if ($dao->name == 'klout') {
         $network['gravatar']['url'] = $dao->url;
       }
-      else {
-        $network['gravatar']['url'] = '';
-      }
-      
     }
     return $network;
   }
