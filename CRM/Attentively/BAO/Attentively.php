@@ -193,7 +193,6 @@ class CRM_Attentively_BAO_Attentively {
     while ($dao->fetch()) {
       if ($dao->name == 'gravatar') {
         $email = self::getAttentivelyEmail($cid);
-        $network[$dao->name]['url'] = $dao->url;
         $atts = array(
           'position' => 'static',
           'border-top-left-radius' => '5px',
@@ -205,6 +204,16 @@ class CRM_Attentively_BAO_Attentively {
         $network[$dao->name]['url'] = $dao->url;
         $network[$dao->name]['image'] = '<img class="network-image" src="' .$config->extensionsURL. '/biz.jmaconsulting.attentively/images/' .$dao->name. '.png" style="width:80px !important; height:80px !important;"/>';
       }
+      if ($dao->photo != '' && $dao->name != 'gravatar') {
+        $network['gravatar']['image'] = '<img class="photo" src=' . $dao->photo . ' />';
+      }
+      if ($dao->name == 'klout') {
+        $network['gravatar']['url'] = $dao->url;
+      }
+      else {
+        $network['gravatar']['url'] = '';
+      }
+      
     }
     return $network;
   }

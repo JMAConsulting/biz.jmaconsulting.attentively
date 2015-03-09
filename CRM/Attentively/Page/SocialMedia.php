@@ -26,6 +26,7 @@ class CRM_Attentively_Page_SocialMedia extends CRM_Core_Page {
 
     if ($memberID) {
       $attURL .= "dashboard/contact_detail/{$memberID}";
+      $this->assign('memID', $memberID);
     }
     $this->assign('attURL', $attURL);
     $this->assign('posts', $post);

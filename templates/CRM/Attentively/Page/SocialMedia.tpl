@@ -44,9 +44,19 @@
     margin-left: 5px;
     position: absolute;
 {rdelim}
+
+.photo {ldelim}
+    width: 80px;
+    width: 80px;
+    border-radius: 50%;
+{rdelim}
 </style>
 <div class="attentively-branding">
-<a href="{$attURL}">Manage contact in <img class="att-logo" src="{$config->extensionsURL}/biz.jmaconsulting.attentively/images/Attentively.png"></a>
+{if $memID}
+  <a href="{$attURL}">Manage contact in <img class="att-logo" src="{$config->extensionsURL}/biz.jmaconsulting.attentively/images/Attentively.png"></a>
+{else}
+  <a href="{$attURL}">No social media matches have been made for this contact in <img class="att-logo" src="{$config->extensionsURL}/biz.jmaconsulting.attentively/images/Attentively.png"></a>
+{/if}
 </div>
 {strip} 
     <div style="margin-top:2px;">
