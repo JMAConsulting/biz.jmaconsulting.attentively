@@ -70,19 +70,20 @@ class CRM_Attentively_BAO_Attentively {
     $url = $url . 'members_add';
     // Retrieve only necessary fields
     $count = civicrm_api3('Contact', 'getCount', array('sequential' => 1));
+    $proc = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_custom_field WHERE name = 'attentively_is_processed'");
     while ($count > 0) {
       $params = array( 
         'return.first_name' => 1,
         'return.last_name' => 1,
         'return.email' => 1,
         'rowCount' => ROWCOUNT,
-        'custom_129' => array('IS NULL' => 1),
+        'custom_' . $proc => array('IS NULL' => 1),
         'sequential' => 1,
       );
       $contacts = civicrm_api3('Contact', 'get', $params);
       $members = array();
       foreach ($contacts['values'] as $key => $values) {
-        civicrm_api3('CustomValue', 'create', array('entity_id' => $values['id'], 'custom_129' => 1));
+        civicrm_api3('CustomValue', 'create', array('entity_id' => $values['id'], 'custom_' . $proc => 1));
         if (!CRM_Utils_Array::value('email', $values)) {
           continue;
         }
