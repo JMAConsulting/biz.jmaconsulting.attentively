@@ -26,6 +26,24 @@ function attentively_civicrm_xmlMenu(&$files) {
  */
 function attentively_civicrm_install() {
   CRM_Core_Session::singleton()->set('authEnabled', TRUE);
+  $params = array(
+    'title' => 'Processed by Attentive.ly?',
+    'name' => 'attentively_processed',
+    'is_active' => 1,
+    'extends' => array('Contact'),
+    'api.customField.create' => array(
+      array(
+        'name' => 'attentively_is_processed',
+        'label' => 'Processed',
+        'html_type' => 'Radio',
+        'data_type' => 'Boolean',
+        'is_active' => 1,
+        'is_view' => 1,
+        'is_searchable' => 1,
+      ),
+    ), 
+  );
+  civicrm_api3('CustomGroup', 'create', $params);
   return _attentively_civix_civicrm_install();
 }
 
@@ -80,6 +98,7 @@ function attentively_civicrm_managed(&$entities) {
     'name' => 'attentively',
     'entity' => 'OptionGroup',
     'update' => 'never',
+    'is_active' => 1,
     'params' => array(
       'title' => 'Attentive.ly Settings',
       'name' => 'attentively_auth',
