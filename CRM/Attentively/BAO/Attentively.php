@@ -1,4 +1,6 @@
 <?php
+
+define('ROWCOUNT', 1000);
 /*
  +--------------------------------------------------------------------+
  | CiviCRM version 4.4                                                |
@@ -62,41 +64,46 @@ class CRM_Attentively_BAO_Attentively {
    * $Id$
    *
    */
-  static public function pushMembers($params = NULL) {
+  static public function pushMembers() {
     $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, NULL, 'name', FALSE);
     $url = self::checkEnvironment();
     $url = $url . 'members_add';
     // Retrieve only necessary fields
-    if (empty($params)) { // No contacts specified so attempt to push all contacts 
+    $count = civicrm_api3('Contact', 'getCount', array('sequential' => 1));
+    while ($count > 0) {
       $params = array( 
         'return.first_name' => 1,
         'return.last_name' => 1,
         'return.email' => 1,
-        'rowCount' => 1000,
+        'rowCount' => ROWCOUNT,
+        'custom_129' => array('IS NULL' => 1),
         'sequential' => 1,
       );
-    }
-    $contacts = civicrm_api3('Contact', 'get', $params);
-    foreach ($contacts['values'] as $key => $values) {
-      if (!CRM_Utils_Array::value('email', $values)) {
-        continue;
+      $contacts = civicrm_api3('Contact', 'get', $params);
+      $members = array();
+      foreach ($contacts['values'] as $key => $values) {
+        civicrm_api3('CustomValue', 'create', array('entity_id' => $values['id'], 'custom_129' => 1));
+        if (!CRM_Utils_Array::value('email', $values)) {
+          continue;
+        }
+        $members[$key]['contact_id'] =  $values['id'];
+        $members[$key]['first_name'] =  $values['first_name'];
+        $members[$key]['last_name'] =  $values['last_name'];
+        $members[$key]['email_address'] =  $values['email'];
       }
-      $members[$key]['contact_id'] =  $values['id'];
-      $members[$key]['first_name'] =  $values['first_name'];
-      $members[$key]['last_name'] =  $values['last_name'];
-      $members[$key]['email_address'] =  $values['email'];
-    }
-    $object = json_encode(json_decode(json_encode($members), FALSE));
-    $post = 'access_token=' . $settings['access_token'] . '&members=' . $object;
-    $ch = curl_init( $url );
-    curl_setopt( $ch, CURLOPT_POST, TRUE);
-    curl_setopt( $ch, CURLOPT_POSTFIELDS, $post);
-    curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt( $ch, CURLOPT_HEADER, 0);
-    curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
+      $object = json_encode(json_decode(json_encode($members), FALSE));
+      $post = 'access_token=' . $settings['access_token'] . '&members=' . $object;
+      $ch = curl_init( $url );
+      curl_setopt( $ch, CURLOPT_POST, TRUE);
+      curl_setopt( $ch, CURLOPT_POSTFIELDS, $post);
+      curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
+      curl_setopt( $ch, CURLOPT_HEADER, 0);
+      curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
+      $count -= $contacts['count'];
     
-    $response = curl_exec( $ch );
-    $result = get_object_vars(json_decode($response));
+      $response = curl_exec( $ch );
+      $result = get_object_vars(json_decode($response));
+    }
   }
 
   static public function pullMembers() {
