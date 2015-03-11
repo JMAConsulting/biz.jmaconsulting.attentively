@@ -3,6 +3,10 @@
   <file>attentively</file>
   <name>Attentive.ly</name>
   <description>Attentive.ly Social Media Integration</description>
+  <urls>
+    <url desc="Support">https://github.com/JMAConsulting/biz.jmaconsulting.attentively/issues?state=open</url>
+    <url desc="Installation Instructions">https://github.com/JMAConsulting/https://github.com/JMAConsulting/biz.jmaconsulting.attentively</url>
+  </urls>
   <license>AGPL-3.0</license>
   <maintainer>
     <author>JMA Consulting</author>
