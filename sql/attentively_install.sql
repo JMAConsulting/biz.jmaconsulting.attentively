@@ -15,8 +15,9 @@ CREATE TABLE IF NOT EXISTS `civicrm_attentively_member` (
   `zip_code` varchar(12) DEFAULT NULL,
   `metro_area` text,
   `klout_score` int(10) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `member_id` (`member_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Table structure for table `civicrm_attentively_member_network`
@@ -29,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `civicrm_attentively_member_network` (
   `url` varchar(255) DEFAULT NULL,
   `photo` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Adding Administration form to navigation menu

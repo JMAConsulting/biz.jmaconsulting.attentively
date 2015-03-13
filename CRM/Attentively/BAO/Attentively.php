@@ -83,10 +83,10 @@ class CRM_Attentively_BAO_Attentively {
       $contacts = civicrm_api3('Contact', 'get', $params);
       $members = array();
       foreach ($contacts['values'] as $key => $values) {
-        civicrm_api3('CustomValue', 'create', array('entity_id' => $values['id'], 'custom_' . $proc => 1));
         if (!CRM_Utils_Array::value('email', $values)) {
           continue;
         }
+        civicrm_api3('CustomValue', 'create', array('entity_id' => $values['id'], 'custom_' . $proc => 1));
         $members[$key]['contact_id'] =  $values['id'];
         $members[$key]['first_name'] =  $values['first_name'];
         $members[$key]['last_name'] =  $values['last_name'];
@@ -111,7 +111,7 @@ class CRM_Attentively_BAO_Attentively {
     $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, NULL, 'name', FALSE);
     $url = self::checkEnvironment();
     $url = $url . 'members';
-    $post = 'access_token=' . $settings['access_token'];
+    $post = 'access_token=' . $settings['access_token'] . '&use_deferred=1';
     $ch = curl_init( $url );
     curl_setopt( $ch, CURLOPT_POST, TRUE);
     curl_setopt( $ch, CURLOPT_POSTFIELDS, $post);
@@ -121,7 +121,21 @@ class CRM_Attentively_BAO_Attentively {
     $response = curl_exec( $ch );
     $result = get_object_vars(json_decode($response));
     $network = array();
-    if ($result['success']) {
+    // Check the deferred status [This allows us to call all records without pagination]
+    if ($result['success'] && $result['deferred_status'] == 'queued') {
+      // Call API again until deferred status is ready
+      $post = 'access_token=' . $settings['access_token'] . '&deferred_id=' . $result['deferred_id'] . '&use_deferred=1';
+      curl_setopt( $ch, CURLOPT_POSTFIELDS, $post); // Set new postfields
+      $response = curl_exec( $ch );
+      $result = get_object_vars(json_decode($response));
+      while ($result['deferred_status'] == 'queued') {
+        $response = curl_exec( $ch );
+        $result = get_object_vars(json_decode($response));
+      }
+    }
+    curl_close($ch);
+    
+    if ($result['success'] && $result['deferred_status'] == 'complete') {
       // Store members
       foreach ($result['members'] as $key => $value) {
         $sql = "INSERT INTO civicrm_attentively_member (`member_id`, `contact_id`, `email_address`, `first_name`, `last_name`, `age`, `city`, `state`, `zip_code`, `metro_area`, `klout_score`) 
@@ -149,6 +163,25 @@ class CRM_Attentively_BAO_Attentively {
           $dao = CRM_Core_DAO::executeQuery($query);
         }
       }
+    }
+  }
+
+  static public function pullWatchedTerms() {
+    $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, NULL, 'name', FALSE);
+    $url = self::checkEnvironment();
+    $url = $url . 'watched_terms';
+    $post = 'access_token=' . $settings['access_token'];
+    $ch = curl_init( $url );
+    curl_setopt( $ch, CURLOPT_POST, TRUE);
+    curl_setopt( $ch, CURLOPT_POSTFIELDS, $post);
+    curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt( $ch, CURLOPT_HEADER, 0);
+    curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
+    $response = curl_exec( $ch );
+    $result = get_object_vars(json_decode($response));
+
+    if ($result['success']) {
+      
     }
   }
 
