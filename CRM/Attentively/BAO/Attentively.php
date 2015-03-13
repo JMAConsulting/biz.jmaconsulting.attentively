@@ -145,11 +145,11 @@ class CRM_Attentively_BAO_Attentively {
           ON DUPLICATE KEY UPDATE member_id = '{$value->member_id}', email_address = '{$value->email_address}', first_name = %1, last_name = %2,
           age = '{$value->age}', city = %3, state = %4, zip_code = '{$value->zip_code}', metro_area = %5, klout_score = '{$value->klout_score}'";
         $params = array( 
-          1 => array('$value->first_name', 'String'),
-          2 => array('$value->last_name', 'String'),
-          3 => array('$value->city', 'String'),
-          4 => array('$value->state', 'String'),
-          5 => array('$value->metro_area', 'String'),
+          1 => array($value->first_name, 'String'),
+          2 => array($value->last_name, 'String'),
+          3 => array($value->city, 'String'),
+          4 => array($value->state, 'String'),
+          5 => array($value->metro_area, 'String'),
         );
         $dao = CRM_Core_DAO::executeQuery($sql, $params);
         // Store networks
@@ -199,6 +199,18 @@ class CRM_Attentively_BAO_Attentively {
     return FALSE;
   }
 
+  static public function getPosts($cid) {
+    $posts = array();
+    $dao = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_attentively_posts WHERE contact_id = {$cid}");
+    while ($dao->fetch()) {
+      $posts[$dao->id]['post_network'] = $dao->network;
+      $posts[$dao->id]['post_content'] = $dao->post_content;
+      $posts[$dao->id]['post_date'] = $dao->post_date;
+      $posts[$dao->id]['post_url'] = $dao->post_url;
+    }
+    return $posts;
+  }
+
   static public function pullPosts() {
     $terms = array();
     CRM_Attentively_BAO_AttentivelyWatchedTerms::getWatchedTerms($terms);
@@ -217,7 +229,26 @@ class CRM_Attentively_BAO_Attentively {
     curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
     $response = curl_exec( $ch );
     $result = get_object_vars(json_decode($response));
-    return $result;
+ 
+    if ($result['success']) {
+      // Store posts
+      foreach ($result['posts'] as $key => $value) {
+        $check = CRM_Core_DAO::singleValueQuery("SELECT 1 FROM civicrm_attentively_posts WHERE post_timestamp = {$value->timestamp}");
+        if ($check)
+          continue;
+        // FIXME: This needs to have its own DAO
+        $sql = "INSERT INTO civicrm_attentively_posts (`member_id`, `contact_id`, `network`, `post_content`, `post_date`, `post_timestamp`,  `post_url`) 
+          VALUES ( '{$value->member_id}', '{$value->contact_id}', '{$value->network}', %1, %2, '{post_timestamp}', %3)";
+        $params = array( 
+          1 => array($value->post_content, 'String'),
+          2 => array(date('Y-m-d H:i:s', strtotime($value->post_date)), 'String'),
+          3 => array($value->post_url, 'String'),
+        );
+        $dao = CRM_Core_DAO::executeQuery($sql, $params);
+      }
+      return count($result['posts']);
+    }
+    return FALSE;
   }
 
   static public function pushWatchedTerms($terms) {

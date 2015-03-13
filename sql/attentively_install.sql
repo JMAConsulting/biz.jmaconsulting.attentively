@@ -44,6 +44,22 @@ CREATE TABLE IF NOT EXISTS `civicrm_attentively_watched_terms` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
+-- Table structure for table `civicrm_attentively_posts`
+--
+
+CREATE TABLE IF NOT EXISTS `civicrm_attentively_posts` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `member_id` varchar(10) NOT NULL,
+  `contact_id` int(10) NOT NULL,
+  `network` varchar(64) DEFAULT NULL,
+  `post_content` longtext,
+  `post_date` datetime DEFAULT NULL,
+  `post_timestamp` varchar(64) DEFAULT NULL,
+  `post_url` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
 -- Adding Administration form to navigation menu
 --
 
