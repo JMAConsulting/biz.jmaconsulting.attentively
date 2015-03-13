@@ -180,10 +180,16 @@ class CRM_Attentively_BAO_Attentively {
     curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
     $response = curl_exec( $ch );
     $result = get_object_vars(json_decode($response));
-
-    if ($result['success']) {
-      
+    $dao = new CRM_Attentively_DAO_AttentivelyWatchedTerms();
+    if ($result['success'] && !empty($result['watched_terms'])) {
+      foreach ($result['watched_terms'] as $term) {
+        $dao->term = $term->term;
+        $dao->nickname = $term->nickname;
+        $dao->save();
+      }
+      return count($result['watched_terms']);
     }
+    return FALSE;
   }
 
   static public function pullPosts($terms) {

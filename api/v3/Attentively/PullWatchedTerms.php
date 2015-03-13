@@ -10,6 +10,13 @@
  * @throws API_Exception
  */
 function civicrm_api3_attentively_pullwatchedterms() {
-  CRM_Attentively_BAO_Attentively::pullwatchedterms();
+  $count = CRM_Attentively_BAO_Attentively::pullWatchedTerms();
+  
+  if ($count) {
+    return civicrm_api3_create_success(ts('Total watched terms fetched: ' . $count));
+  }
+  else {
+    return civicrm_api3_create_error(ts('Error while fetching watched terms'));
+  }
 }
 
