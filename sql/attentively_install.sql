@@ -33,6 +33,17 @@ CREATE TABLE IF NOT EXISTS `civicrm_attentively_member_network` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
+-- Table structure for table `civicrm_attentively_watched_terms`
+--
+
+CREATE TABLE IF NOT EXISTS `civicrm_attentively_watched_terms` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `term` varchar(255) DEFAULT NULL,
+  `nickname` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
 -- Adding Administration form to navigation menu
 --
 
