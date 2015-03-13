@@ -140,11 +140,18 @@ class CRM_Attentively_BAO_Attentively {
       // Store members
       foreach ($result['members'] as $key => $value) {
         $sql = "INSERT INTO civicrm_attentively_member (`member_id`, `contact_id`, `email_address`, `first_name`, `last_name`, `age`, `city`, `state`, `zip_code`, `metro_area`, `klout_score`) 
-          VALUES ( '{$value->member_id}', '{$value->contact_id}', '{$value->email_address}', '{$value->first_name}', '{$value->last_name}', '{$value->age}', '{$value->city}', '{$value->state}', 
-          '{$value->zip_code}', '{$value->metro_area}', '{$value->klout_score}' ) 
-          ON DUPLICATE KEY UPDATE member_id = '{$value->member_id}', email_address = '{$value->email_address}', first_name = '{$value->first_name}', last_name = '{$value->last_name}',
-          age = '{$value->age}', city = '{$value->city}', state = '{$value->state}', zip_code = '{$value->zip_code}', metro_area = '{$value->metro_area}', klout_score = '{$value->klout_score}'";
-        $dao = CRM_Core_DAO::executeQuery($sql);
+          VALUES ( '{$value->member_id}', '{$value->contact_id}', '{$value->email_address}', %1, %2, '{$value->age}', %3, %4, 
+          '{$value->zip_code}', %5, '{$value->klout_score}' ) 
+          ON DUPLICATE KEY UPDATE member_id = '{$value->member_id}', email_address = '{$value->email_address}', first_name = %1, last_name = %2,
+          age = '{$value->age}', city = %3, state = %4, zip_code = '{$value->zip_code}', metro_area = %5, klout_score = '{$value->klout_score}'";
+        $params = array( 
+          1 => array('$value->first_name', 'String'),
+          2 => array('$value->last_name', 'String'),
+          3 => array('$value->city', 'String'),
+          4 => array('$value->state', 'String'),
+          5 => array('$value->metro_area', 'String'),
+        );
+        $dao = CRM_Core_DAO::executeQuery($sql, $params);
         // Store networks
         foreach ($value->networks as $k => $networks) {
           $network[$key][$k]['contact_id'] = $value->contact_id;
@@ -192,14 +199,16 @@ class CRM_Attentively_BAO_Attentively {
     return FALSE;
   }
 
-  static public function pullPosts($terms) {
-    if (empty($terms)) {
-      return;
+  static public function pullPosts() {
+    $terms = array();
+    CRM_Attentively_BAO_AttentivelyWatchedTerms::getWatchedTerms($terms);
+    foreach ($terms as $term) {
+      $allTerms .= $term['term'] . ',';
     }
     $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, NULL, 'name', FALSE);
     $url = self::checkEnvironment();
     $url = $url . 'posts';
-    $post = 'access_token=' . $settings['access_token'] . '&period=' . $settings['post_period_to_retrieve'] . '&term=' . $terms . '&include_member_info=TRUE';
+    $post = 'access_token=' . $settings['access_token'] . '&period=' . $settings['post_period_to_retrieve'] . '&term=' . $allTerms;
     $ch = curl_init( $url );
     curl_setopt( $ch, CURLOPT_POST, TRUE);
     curl_setopt( $ch, CURLOPT_POSTFIELDS, $post);
@@ -284,7 +293,7 @@ class CRM_Attentively_BAO_Attentively {
 
   static public function getCount($cid) {
     $sql = "SELECT count(id) FROM civicrm_attentively_member_network
-      WHERE contact_id = {$cid} and name <> 'klout'";
+      WHERE contact_id = {$cid} and name <> 'klout' or name <> 'gravatar'";
     $count = CRM_Core_DAO::singleValueQuery($sql);
     return $count;
   } 

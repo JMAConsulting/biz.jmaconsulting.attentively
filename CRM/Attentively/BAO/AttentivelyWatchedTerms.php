@@ -47,6 +47,7 @@ class CRM_Attentively_BAO_Attentively extends CRM_Attentively_DAO_AttentivelyWat
    */
   static public function getWatchedTerms(&$terms) {
     $dao = new CRM_Attentively_DAO_AttentivelyWatchedTerms();
+    $dao->find();
     while ($dao->fetch()) {
       $terms[$dao->id]['term'] = $dao->term;
       $terms[$dao->id]['nickname'] = $dao->nickname;
