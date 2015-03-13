@@ -129,6 +129,7 @@ class CRM_Attentively_BAO_Attentively {
       $response = curl_exec( $ch );
       $result = get_object_vars(json_decode($response));
       while ($result['deferred_status'] == 'queued') {
+        sleep(10); // Delay execution by 10 seconds to allow list to be refreshed
         $response = curl_exec( $ch );
         $result = get_object_vars(json_decode($response));
       }
