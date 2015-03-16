@@ -83,10 +83,10 @@ class CRM_Attentively_BAO_Attentively {
       $contacts = civicrm_api3('Contact', 'get', $params);
       $members = array();
       foreach ($contacts['values'] as $key => $values) {
-        civicrm_api3('CustomValue', 'create', array('entity_id' => $values['id'], 'custom_' . $proc => 1));
         if (!CRM_Utils_Array::value('email', $values)) {
           continue;
         }
+        civicrm_api3('CustomValue', 'create', array('entity_id' => $values['id'], 'custom_' . $proc => 1));
         $members[$key]['contact_id'] =  $values['id'];
         $members[$key]['first_name'] =  $values['first_name'];
         $members[$key]['last_name'] =  $values['last_name'];
@@ -111,7 +111,7 @@ class CRM_Attentively_BAO_Attentively {
     $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, NULL, 'name', FALSE);
     $url = self::checkEnvironment();
     $url = $url . 'members';
-    $post = 'access_token=' . $settings['access_token'];
+    $post = 'access_token=' . $settings['access_token'] . '&use_deferred=1';
     $ch = curl_init( $url );
     curl_setopt( $ch, CURLOPT_POST, TRUE);
     curl_setopt( $ch, CURLOPT_POSTFIELDS, $post);
@@ -121,15 +121,37 @@ class CRM_Attentively_BAO_Attentively {
     $response = curl_exec( $ch );
     $result = get_object_vars(json_decode($response));
     $network = array();
-    if ($result['success']) {
+    // Check the deferred status [This allows us to call all records without pagination]
+    if ($result['success'] && $result['deferred_status'] == 'queued') {
+      // Call API again until deferred status is ready
+      $post = 'access_token=' . $settings['access_token'] . '&deferred_id=' . $result['deferred_id'] . '&use_deferred=1';
+      curl_setopt( $ch, CURLOPT_POSTFIELDS, $post); // Set new postfields
+      $response = curl_exec( $ch );
+      $result = get_object_vars(json_decode($response));
+      while ($result['deferred_status'] == 'queued') {
+        sleep(10); // Delay execution by 10 seconds to allow list to be refreshed
+        $response = curl_exec( $ch );
+        $result = get_object_vars(json_decode($response));
+      }
+    }
+    curl_close($ch);
+    
+    if ($result['success'] && $result['deferred_status'] == 'complete') {
       // Store members
       foreach ($result['members'] as $key => $value) {
         $sql = "INSERT INTO civicrm_attentively_member (`member_id`, `contact_id`, `email_address`, `first_name`, `last_name`, `age`, `city`, `state`, `zip_code`, `metro_area`, `klout_score`) 
-          VALUES ( '{$value->member_id}', '{$value->contact_id}', '{$value->email_address}', '{$value->first_name}', '{$value->last_name}', '{$value->age}', '{$value->city}', '{$value->state}', 
-          '{$value->zip_code}', '{$value->metro_area}', '{$value->klout_score}' ) 
-          ON DUPLICATE KEY UPDATE member_id = '{$value->member_id}', email_address = '{$value->email_address}', first_name = '{$value->first_name}', last_name = '{$value->last_name}',
-          age = '{$value->age}', city = '{$value->city}', state = '{$value->state}', zip_code = '{$value->zip_code}', metro_area = '{$value->metro_area}', klout_score = '{$value->klout_score}'";
-        $dao = CRM_Core_DAO::executeQuery($sql);
+          VALUES ( '{$value->member_id}', '{$value->contact_id}', '{$value->email_address}', %1, %2, '{$value->age}', %3, %4, 
+          '{$value->zip_code}', %5, '{$value->klout_score}' ) 
+          ON DUPLICATE KEY UPDATE member_id = '{$value->member_id}', email_address = '{$value->email_address}', first_name = %1, last_name = %2,
+          age = '{$value->age}', city = %3, state = %4, zip_code = '{$value->zip_code}', metro_area = %5, klout_score = '{$value->klout_score}'";
+        $params = array( 
+          1 => array($value->first_name, 'String'),
+          2 => array($value->last_name, 'String'),
+          3 => array($value->city, 'String'),
+          4 => array($value->state, 'String'),
+          5 => array($value->metro_area, 'String'),
+        );
+        $dao = CRM_Core_DAO::executeQuery($sql, $params);
         // Store networks
         foreach ($value->networks as $k => $networks) {
           $network[$key][$k]['contact_id'] = $value->contact_id;
@@ -152,14 +174,11 @@ class CRM_Attentively_BAO_Attentively {
     }
   }
 
-  static public function pullPosts($terms) {
-    if (empty($terms)) {
-      return;
-    }
+  static public function pullWatchedTerms() {
     $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, NULL, 'name', FALSE);
     $url = self::checkEnvironment();
-    $url = $url . 'posts';
-    $post = 'access_token=' . $settings['access_token'] . '&period=' . $settings['post_period_to_retrieve'] . '&term=' . $terms . '&include_member_info=TRUE';
+    $url = $url . 'watched_terms';
+    $post = 'access_token=' . $settings['access_token'];
     $ch = curl_init( $url );
     curl_setopt( $ch, CURLOPT_POST, TRUE);
     curl_setopt( $ch, CURLOPT_POSTFIELDS, $post);
@@ -168,7 +187,68 @@ class CRM_Attentively_BAO_Attentively {
     curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
     $response = curl_exec( $ch );
     $result = get_object_vars(json_decode($response));
-    return $result;
+    $dao = new CRM_Attentively_DAO_AttentivelyWatchedTerms();
+    if ($result['success'] && !empty($result['watched_terms'])) {
+      foreach ($result['watched_terms'] as $term) {
+        $dao->term = $term->term;
+        $dao->nickname = $term->nickname;
+        $dao->save();
+      }
+      return count($result['watched_terms']);
+    }
+    return FALSE;
+  }
+
+  static public function getPosts($cid) {
+    $posts = array();
+    $dao = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_attentively_posts WHERE contact_id = {$cid}");
+    while ($dao->fetch()) {
+      $posts[$dao->id]['post_network'] = $dao->network;
+      $posts[$dao->id]['post_content'] = $dao->post_content;
+      $posts[$dao->id]['post_date'] = $dao->post_date;
+      $posts[$dao->id]['post_url'] = $dao->post_url;
+    }
+    return $posts;
+  }
+
+  static public function pullPosts() {
+    $terms = array();
+    CRM_Attentively_BAO_AttentivelyWatchedTerms::getWatchedTerms($terms);
+    foreach ($terms as $term) {
+      $allTerms .= $term['term'] . ',';
+    }
+    $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, NULL, 'name', FALSE);
+    $url = self::checkEnvironment();
+    $url = $url . 'posts';
+    $post = 'access_token=' . $settings['access_token'] . '&period=' . $settings['post_period_to_retrieve'] . '&term=' . $allTerms;
+    $ch = curl_init( $url );
+    curl_setopt( $ch, CURLOPT_POST, TRUE);
+    curl_setopt( $ch, CURLOPT_POSTFIELDS, $post);
+    curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt( $ch, CURLOPT_HEADER, 0);
+    curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
+    $response = curl_exec( $ch );
+    $result = get_object_vars(json_decode($response));
+ 
+    if ($result['success']) {
+      // Store posts
+      foreach ($result['posts'] as $key => $value) {
+        $check = CRM_Core_DAO::singleValueQuery("SELECT 1 FROM civicrm_attentively_posts WHERE post_timestamp = {$value->timestamp}");
+        if ($check)
+          continue;
+        // FIXME: This needs to have its own DAO
+        $sql = "INSERT INTO civicrm_attentively_posts (`member_id`, `contact_id`, `network`, `post_content`, `post_date`, `post_timestamp`,  `post_url`) 
+          VALUES ( '{$value->member_id}', '{$value->contact_id}', '{$value->network}', %1, %2, '{post_timestamp}', %3)";
+        $params = array( 
+          1 => array($value->post_content, 'String'),
+          2 => array(date('Y-m-d H:i:s', strtotime($value->post_date)), 'String'),
+          3 => array($value->post_url, 'String'),
+        );
+        $dao = CRM_Core_DAO::executeQuery($sql, $params);
+      }
+      return count($result['posts']);
+    }
+    return FALSE;
   }
 
   static public function pushWatchedTerms($terms) {
@@ -244,7 +324,7 @@ class CRM_Attentively_BAO_Attentively {
 
   static public function getCount($cid) {
     $sql = "SELECT count(id) FROM civicrm_attentively_member_network
-      WHERE contact_id = {$cid} and name <> 'klout'";
+      WHERE contact_id = {$cid} and name <> 'klout' or name <> 'gravatar'";
     $count = CRM_Core_DAO::singleValueQuery($sql);
     return $count;
   } 

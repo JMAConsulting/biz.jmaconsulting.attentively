@@ -97,14 +97,14 @@
 <h3>Posts</h3>
 {if $posts}
 <table id="posts" class="display">
-  <thead> 
-    <tr>
-      <th>{ts}Posts{/ts}</th>
-    </tr>
-  </thead>
   <tbody>
   {foreach from=$posts item=post key=name}
-     <tr><td class="bold" style="padding-top:14px;">{$post}</td></tr>
+     <tr>
+       <td class="bold" style="padding-top:14px;">{$post.network}</td>
+       <td style="padding-top:14px;">{$post.content}</td>
+       <td style="padding-top:14px;">{$post.date}</td>
+       <td style="padding-top:14px;"><a href={$post.post_url}>View Post on {$post.network}</a></td>
+     </tr>
   {/foreach}
   </tbody>
 </table>
