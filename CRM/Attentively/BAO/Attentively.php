@@ -251,10 +251,12 @@ class CRM_Attentively_BAO_Attentively {
     return FALSE;
   }
 
-  static public function pushWatchedTerms($terms) {
+  static public function pushWatchedTerms() {
+    $terms = CRM_Core_OptionGroup::values('attentively_terms', FALSE, FALSE, FALSE, NULL, 'label', FALSE);
     if (empty($terms)) {
-      return;
+      return 0;
     }
+    $terms = implode(',' , $terms);
     $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, NULL, 'name', FALSE);
     $url = self::checkEnvironment();
     $url = $url . 'watched_terms_add';
