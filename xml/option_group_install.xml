@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<CustomData>
+  <OptionGroups>
+    <OptionGroup>
+      <name>attentively_auth</name>
+      <title>Attentive.ly Settings</title>
+      <is_reserved>1</is_reserved>
+      <is_active>1</is_active>
+    </OptionGroup>
+    <OptionGroup>
+      <name>attentively_terms</name>
+      <title>Attentive.ly Watched Terms</title>
+      <is_reserved>1</is_reserved>
+      <is_active>1</is_active>
+    </OptionGroup>
+  </OptionGroups>
+  <OptionValues>
+    <OptionValue>
+      <label>Access Token</label>
+      <value>none</value>
+      <name>access_token</name>
+      <is_reserved>1</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>attentively_auth</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>Post Period to Retrieve</label>
+      <value>3</value>
+      <name>post_period_to_retrieve</name>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>attentively_auth</option_group_name>
+    </OptionValue>
+  </OptionValues>
+</CustomData>
