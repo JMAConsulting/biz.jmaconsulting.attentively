@@ -326,7 +326,7 @@ class CRM_Attentively_BAO_Attentively {
 
   static public function getCount($cid) {
     $sql = "SELECT count(id) FROM civicrm_attentively_member_network
-      WHERE contact_id = {$cid} and name <> 'klout' or name <> 'gravatar'";
+      WHERE contact_id = {$cid} and name NOT IN ('klout', 'gravatar')";
     $count = CRM_Core_DAO::singleValueQuery($sql);
     return $count;
   } 
