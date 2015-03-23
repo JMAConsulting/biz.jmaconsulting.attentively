@@ -70,6 +70,7 @@ class CRM_Attentively_BAO_Attentively {
     $url = $url . 'members_add';
     // Retrieve only necessary fields
     $count = civicrm_api3('Contact', 'getCount', array('sequential' => 1));
+    $memberCount = 0;
     while ($count > 0) {
       $sql = "SELECT c.id, c.first_name, c.last_name, e.email FROM civicrm_contact c 
         LEFT JOIN civicrm_email e ON e.contact_id = c.id
