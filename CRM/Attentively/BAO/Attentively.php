@@ -70,27 +70,24 @@ class CRM_Attentively_BAO_Attentively {
     $url = $url . 'members_add';
     // Retrieve only necessary fields
     $count = civicrm_api3('Contact', 'getCount', array('sequential' => 1));
-    $proc = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_custom_field WHERE name = 'attentively_is_processed'");
+    $memberCount = 0;
     while ($count > 0) {
-      $params = array( 
-        'return.first_name' => 1,
-        'return.last_name' => 1,
-        'return.email' => 1,
-        'rowCount' => ROWCOUNT,
-        'custom_' . $proc => array('IS NULL' => 1),
-        'sequential' => 1,
-      );
-      $contacts = civicrm_api3('Contact', 'get', $params);
+      $sql = "SELECT c.id, c.first_name, c.last_name, e.email FROM civicrm_contact c 
+        LEFT JOIN civicrm_email e ON e.contact_id = c.id
+        LEFT JOIN civicrm_attentively_member_processed m ON m.contact_id = c.id 
+        WHERE e.is_primary = 1 AND m.is_processed IS NULL
+        GROUP BY c.id LIMIT 0, " . ROWCOUNT;
+      $contacts = CRM_Core_DAO::executeQuery($sql);
+      if ($contacts->N == 0) {
+        break;
+      }
       $members = array();
-      foreach ($contacts['values'] as $key => $values) {
-        if (!CRM_Utils_Array::value('email', $values)) {
-          continue;
-        }
-        civicrm_api3('CustomValue', 'create', array('entity_id' => $values['id'], 'custom_' . $proc => 1));
-        $members[$key]['contact_id'] =  $values['id'];
-        $members[$key]['first_name'] =  $values['first_name'];
-        $members[$key]['last_name'] =  $values['last_name'];
-        $members[$key]['email_address'] =  $values['email'];
+      while ($contacts->fetch()) {
+        CRM_Core_DAO::singleValueQuery("INSERT INTO civicrm_attentively_member_processed (contact_id, is_processed) VALUES ({$contacts->id}, 1)");
+        $members[$contacts->id]['contact_id'] =  $contacts->id;
+        $members[$contacts->id]['first_name'] =  $contacts->first_name;
+        $members[$contacts->id]['last_name'] =  $contacts->last_name;
+        $members[$contacts->id]['email_address'] =  $contacts->email;
       }
       $object = json_encode(json_decode(json_encode($members), FALSE));
       $post = 'access_token=' . $settings['access_token'] . '&members=' . $object;
@@ -100,11 +97,15 @@ class CRM_Attentively_BAO_Attentively {
       curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
       curl_setopt( $ch, CURLOPT_HEADER, 0);
       curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
-      $count -= $contacts['count'];
+      $count -= $contacts->N;
     
       $response = curl_exec( $ch );
       $result = get_object_vars(json_decode($response));
+      if ($result['success']) {
+        $memberCount += $result['parameters']->members; 
+      }
     }
+    return $memberCount;
   }
 
   static public function pullMembers() {

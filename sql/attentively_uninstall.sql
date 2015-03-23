@@ -2,6 +2,8 @@ DROP TABLE IF EXISTS `civicrm_attentively_member`;
 
 DROP TABLE IF EXISTS `civicrm_attentively_member_network`;
 
+DROP TABLE IF EXISTS `civicrm_attentively_member_processed`;
+
 DROP TABLE IF EXISTS `civicrm_attentively_watched_terms`;
 
 DROP TABLE IF EXISTS `civicrm_attentively_posts`;

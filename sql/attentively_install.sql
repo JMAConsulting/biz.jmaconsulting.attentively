@@ -3,7 +3,7 @@
 --
 
 CREATE TABLE IF NOT EXISTS `civicrm_attentively_member` (
-  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `member_id` varchar(10) NOT NULL,
   `contact_id` int(10) NOT NULL,
   `email_address` varchar(255) DEFAULT NULL,
@@ -20,11 +20,23 @@ CREATE TABLE IF NOT EXISTS `civicrm_attentively_member` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
+-- Table structure for table `civicrm_attentively_member_processed`
+--
+
+CREATE TABLE IF NOT EXISTS `civicrm_attentively_member_processed` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `contact_id` int(10) NOT NULL,
+  `is_processed` int(10) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `coontact_id` (`contact_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
 -- Table structure for table `civicrm_attentively_member_network`
 --
 
 CREATE TABLE IF NOT EXISTS `civicrm_attentively_member_network` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `contact_id` int(10) NOT NULL,
   `name` varchar(64) DEFAULT NULL,
   `url` varchar(255) DEFAULT NULL,
