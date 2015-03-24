@@ -4,7 +4,8 @@ biz.jmaconsulting.attentively
 Installation
 ------------
 
-3. As part of your general CiviCRM installation, you should set up a cron job following the instructions at http://wiki.civicrm.org/confluence/display/CRMDOC/Managing+Scheduled+Jobs#ManagingScheduledJobs-Command-lineSyntaxforRunningJobs1. As part of your general CiviCRM installation, you should set a CiviCRM Extensions Directory at Administer >> System Settings >> Directories.
+3. As part of your general CiviCRM installation, you should set up a cron job following the instructions at http://wiki.civicrm.org/confluence/display/CRMDOC/Managing+Scheduled+Jobs#ManagingScheduledJobs-Command-lineSyntaxforRunningJobs
+4. As part of your general CiviCRM installation, you should set a CiviCRM Extensions Directory at Administer >> System Settings >> Directories.
 2. As part of your general CiviCRM installation, you should set an Extension Resource URL at Administer >> System Settings >> Resource URLs.
 4. Navigate to Administer >> System Settings >> Manage Extensions.
 4. Beside Attentive.ly Social Media Integration click Install.

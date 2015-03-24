@@ -56,26 +56,17 @@ class CRM_Attentively_BAO_Attentively {
   static public function checkAttentivelyAuth() {
     return CRM_Core_DAO::singleValueQuery("SELECT value FROM civicrm_option_value WHERE name = 'access_token'");
   }
-  
-  /**
-   *
-   * @params   array   array of name/value pairs of contact info
-   * @return boolean  success or failure
-   * $Id$
-   *
-   */
+
   static public function pushMembers() {
-    $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, NULL, 'name', FALSE);
-    $url = self::checkEnvironment();
-    $url = $url . 'members_add';
-    // Retrieve only necessary fields
     $count = civicrm_api3('Contact', 'getCount', array('sequential' => 1));
     $memberCount = 0;
     while ($count > 0) {
       $sql = "SELECT c.id, c.first_name, c.last_name, e.email FROM civicrm_contact c 
         LEFT JOIN civicrm_email e ON e.contact_id = c.id
         LEFT JOIN civicrm_attentively_member_processed m ON m.contact_id = c.id 
-        WHERE e.is_primary = 1 AND m.is_processed IS NULL
+        WHERE e.is_primary = 1
+        AND m.is_processed IS NULL
+        AND e.email IS NOT NULL
         GROUP BY c.id LIMIT 0, " . ROWCOUNT;
       $contacts = CRM_Core_DAO::executeQuery($sql);
       if ($contacts->N == 0) {
@@ -90,17 +81,9 @@ class CRM_Attentively_BAO_Attentively {
         $members[$contacts->id]['email_address'] =  $contacts->email;
       }
       $object = json_encode(json_decode(json_encode($members), FALSE));
-      $post = 'access_token=' . $settings['access_token'] . '&members=' . $object;
-      $ch = curl_init( $url );
-      curl_setopt( $ch, CURLOPT_POST, TRUE);
-      curl_setopt( $ch, CURLOPT_POSTFIELDS, $post);
-      curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
-      curl_setopt( $ch, CURLOPT_HEADER, 0);
-      curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
+      $member = '&members=' . $object;
+      $result = self::getAttentivelyResponse('members_add', $member);
       $count -= $contacts->N;
-    
-      $response = curl_exec( $ch );
-      $result = get_object_vars(json_decode($response));
       if ($result['success']) {
         $memberCount += $result['parameters']->members; 
       }
@@ -109,18 +92,7 @@ class CRM_Attentively_BAO_Attentively {
   }
 
   static public function pullMembers() {
-    $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, NULL, 'name', FALSE);
-    $url = self::checkEnvironment();
-    $url = $url . 'members';
-    $post = 'access_token=' . $settings['access_token'] . '&use_deferred=1';
-    $ch = curl_init( $url );
-    curl_setopt( $ch, CURLOPT_POST, TRUE);
-    curl_setopt( $ch, CURLOPT_POSTFIELDS, $post);
-    curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt( $ch, CURLOPT_HEADER, 0);
-    curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
-    $response = curl_exec( $ch );
-    $result = get_object_vars(json_decode($response));
+    $result = self::getAttentivelyResponse('members','&use_deferred=1');
     $network = array();
     // Check the deferred status [This allows us to call all records without pagination]
     if ($result['success'] && $result['deferred_status'] == 'queued') {
@@ -135,7 +107,6 @@ class CRM_Attentively_BAO_Attentively {
         $result = get_object_vars(json_decode($response));
       }
     }
-    curl_close($ch);
     
     if ($result['success'] && $result['deferred_status'] == 'complete') {
       // Store members
@@ -176,18 +147,7 @@ class CRM_Attentively_BAO_Attentively {
   }
 
   static public function pullWatchedTerms() {
-    $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, NULL, 'name', FALSE);
-    $url = self::checkEnvironment();
-    $url = $url . 'watched_terms';
-    $post = 'access_token=' . $settings['access_token'];
-    $ch = curl_init( $url );
-    curl_setopt( $ch, CURLOPT_POST, TRUE);
-    curl_setopt( $ch, CURLOPT_POSTFIELDS, $post);
-    curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt( $ch, CURLOPT_HEADER, 0);
-    curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
-    $response = curl_exec( $ch );
-    $result = get_object_vars(json_decode($response));
+    $result = self::getAttentivelyResponse('watched_terms', NULL);
     $dao = new CRM_Attentively_DAO_AttentivelyWatchedTerms();
     if ($result['success'] && !empty($result['watched_terms'])) {
       foreach ($result['watched_terms'] as $term) {
@@ -218,18 +178,9 @@ class CRM_Attentively_BAO_Attentively {
     foreach ($terms as $term) {
       $allTerms .= $term['term'] . ',';
     }
-    $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, NULL, 'name', FALSE);
-    $url = self::checkEnvironment();
-    $url = $url . 'posts';
-    $post = 'access_token=' . $settings['access_token'] . '&period=' . $settings['post_period_to_retrieve'] . '&term=' . $allTerms;
-    $ch = curl_init( $url );
-    curl_setopt( $ch, CURLOPT_POST, TRUE);
-    curl_setopt( $ch, CURLOPT_POSTFIELDS, $post);
-    curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt( $ch, CURLOPT_HEADER, 0);
-    curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
-    $response = curl_exec( $ch );
-    $result = get_object_vars(json_decode($response));
+    $period = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, " AND v.name = 'post_period_to_retrieve' ", 'name', FALSE);
+    $post = '&period=' . $period['post_period_to_retrieve'] . '&term=' . $allTerms;
+    $result = self::getAttentivelyResponse('posts', $post);
  
     if ($result['success']) {
       // Store posts
@@ -257,20 +208,12 @@ class CRM_Attentively_BAO_Attentively {
     if (empty($terms)) {
       return 0;
     }
-    $terms = implode(',' , $terms);
-    $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, NULL, 'name', FALSE);
-    $url = self::checkEnvironment();
-    $url = $url . 'watched_terms_add';
-    $post = 'access_token=' . $settings['access_token'] . '&terms=' . $terms;
-    $ch = curl_init( $url );
-    curl_setopt( $ch, CURLOPT_POST, TRUE);
-    curl_setopt( $ch, CURLOPT_POSTFIELDS, $post);
-    curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt( $ch, CURLOPT_HEADER, 0);
-    curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
-    $response = curl_exec( $ch );
-    $result = get_object_vars(json_decode($response));
-    return $result;
+    $terms = '&terms=' . implode(',' , $terms);
+    $result = self::getAttentivelyResponse('watched_terms_add', $terms); 
+    if ($result['success']) {
+      return count($result['parameters']->terms);
+    }
+    return FALSE;
   }
 
   static public function getNetworks($cid) {
@@ -374,5 +317,21 @@ class CRM_Attentively_BAO_Attentively {
       $networks[$dao->name] = ucfirst($dao->name);
     }
     return $networks;
+  }
+
+
+  function getAttentivelyResponse($url, $postPart) {
+    $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, " AND v.name = 'access_token' ", 'name', FALSE);
+    $post = 'access_token=' . $settings['access_token'] . $postPart;
+    $url = self::checkEnvironment() . $url;
+    $ch = curl_init( $url );
+    curl_setopt( $ch, CURLOPT_POST, TRUE);
+    curl_setopt( $ch, CURLOPT_POSTFIELDS, $post);
+    curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt( $ch, CURLOPT_HEADER, 0);
+    curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
+    
+    $response = curl_exec( $ch );
+    return get_object_vars(json_decode($response));
   }
 }
