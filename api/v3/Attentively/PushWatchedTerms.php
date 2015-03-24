@@ -9,7 +9,7 @@
  * @see civicrm_api3_create_error
  * @throws API_Exception
  */
-function civicrm_api3_attentively_pushwatchedterms($params) {
-  CRM_Attentively_BAO_Attentively::pushwatchedterms($params['terms']);
+function civicrm_api3_attentively_pushwatchedterms() {
+  CRM_Attentively_BAO_Attentively::pushWatchedTerms();
 }
 

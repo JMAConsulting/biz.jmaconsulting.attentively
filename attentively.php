@@ -26,24 +26,6 @@ function attentively_civicrm_xmlMenu(&$files) {
  */
 function attentively_civicrm_install() {
   CRM_Core_Session::singleton()->set('authEnabled', TRUE);
-  $params = array(
-    'title' => 'Processed by Attentive.ly?',
-    'name' => 'attentively_processed',
-    'is_active' => 1,
-    'extends' => array('Contact'),
-    'api.customField.create' => array(
-      array(
-        'name' => 'attentively_is_processed',
-        'label' => 'Processed',
-        'html_type' => 'Radio',
-        'data_type' => 'Boolean',
-        'is_active' => 1,
-        'is_view' => 1,
-        'is_searchable' => 1,
-      ),
-    ), 
-  );
-  civicrm_api3('CustomGroup', 'create', $params);
   return _attentively_civix_civicrm_install();
 }
 
@@ -92,42 +74,31 @@ function attentively_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
  * Generate a list of entities to create/deactivate/delete when this module
  * is installed, disabled, uninstalled.
  */
-function attentively_civicrm_managed(&$entities) { 
+function attentively_civicrm_managed(&$entities) {  
   $entities[] = array(
     'module' => 'biz.jmaconsulting.attentively',
     'name' => 'attentively',
-    'entity' => 'OptionGroup',
-    'update' => 'never',
-    'is_active' => 1,
+    'entity' => 'CustomGroup',
     'params' => array(
-      'title' => 'Attentive.ly Settings',
-      'name' => 'attentively_auth',
-      'is_reserved' => 1,
-      'is_active' => 1,
-      'api.optionValue.create' => array(
-        array(
-          'name' => 'access_token',
-          'label' => 'Access Token',
-          'value' => 'none',
-          'is_active' => 1,
-        ),
-        array(
-          'name' => 'post_period_to_retrieve',
-          'label' => 'Post Period to Retrieve',
-          'is_active' => 1,
-          'value' => 3,
-        ),
-      ), 
-      'version' => 3,
-      'update' => 'never',
-    ),
-    array(
-      'title' => 'Attentive.ly Watched Terms',
-      'name' => 'attentively_terms',
-      'is_reserved' => 1,
+      'title' => 'Processed by Attentive.ly?',
+      'name' => 'attentively_processed',
       'is_active' => 1,
       'update' => 'never',
       'version' => 3,
+      'extends' => 'Contact',
+      'api.customField.create' => array(
+        array(
+          'name' => 'attentively_is_processed',
+          'label' => 'Processed',
+          'html_type' => 'Radio',
+          'data_type' => 'Boolean',
+          'is_active' => 1,
+          'is_view' => 1,
+          'update' => 'never',
+          'is_searchable' => 1,
+          'version' => 3,
+        ),
+      ),  
     ),
   );
   return _attentively_civix_civicrm_managed($entities);
