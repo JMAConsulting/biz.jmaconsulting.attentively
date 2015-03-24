@@ -13,7 +13,7 @@ class CRM_Attentively_Form_AttentivelyAuth extends CRM_Core_Form {
     $this->add('text', "access_token", ts('Access Token'), array(
         'size' => 30, 'maxlength' => 60, 'readonly' => TRUE)
     );
-    $this->add('checkbox', "accept", ts('I have read and accepted the terms of conditions'));
+    $this->add('checkbox', "accept", ts('I have read and accepted the terms and conditions'));
     $this->addButtons(array(
       array(
         'type' => 'submit',
@@ -25,7 +25,28 @@ class CRM_Attentively_Form_AttentivelyAuth extends CRM_Core_Form {
     $defaults = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, NULL, 'name', FALSE);
     $this->setDefaults($defaults);
     $this->freeze('access_token');
+    $this->addFormRule(array('CRM_Attentively_Form_AttentivelyAuth', 'formRule'), $this);
     parent::buildQuickForm();
+  }
+
+  /**
+   * form rule
+   *
+   * @param array $fields  the input form values
+   * @param array $files   the uploaded files if any
+   * @param array $options additional user data
+   *
+   * @return true if no errors, else array of errors
+   * @access public
+   * @static
+   */
+  static function formRule($fields, $files, $self) {
+    $errors = array();
+  
+    if (!CRM_Utils_Array::value('accept', $fields)) {
+      $errors['accept'] = ts('Please accept the terms and conditions before proceeding.');
+    }
+    return empty($errors) ? TRUE : $errors;
   }
 
   function postProcess() {
