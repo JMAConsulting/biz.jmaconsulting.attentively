@@ -92,7 +92,18 @@ class CRM_Attentively_BAO_Attentively {
   }
 
   static public function pullMembers() {
-    $result = self::getAttentivelyResponse('members','&use_deferred=1');
+    $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, " AND v.name = 'access_token' ", 'name', FALSE);
+    $url = self::checkEnvironment();
+    $url = $url . 'members';
+    $post = 'access_token=' . $settings['access_token'] . '&use_deferred=1';
+    $ch = curl_init( $url );
+    curl_setopt( $ch, CURLOPT_POST, TRUE);
+    curl_setopt( $ch, CURLOPT_POSTFIELDS, $post);
+    curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt( $ch, CURLOPT_HEADER, 0);
+    curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
+    $response = curl_exec( $ch );
+    $result = get_object_vars(json_decode($response));
     $network = array();
     // Check the deferred status [This allows us to call all records without pagination]
     if ($result['success'] && $result['deferred_status'] == 'queued') {
@@ -107,6 +118,7 @@ class CRM_Attentively_BAO_Attentively {
         $result = get_object_vars(json_decode($response));
       }
     }
+    curl_close($ch);
     
     if ($result['success'] && $result['deferred_status'] == 'complete') {
       // Store members
@@ -143,7 +155,9 @@ class CRM_Attentively_BAO_Attentively {
           $dao = CRM_Core_DAO::executeQuery($query);
         }
       }
+      return count($result['members']);
     }
+    return FALSE;
   }
 
   static public function pullWatchedTerms() {
