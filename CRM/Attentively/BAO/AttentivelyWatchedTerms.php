@@ -33,7 +33,7 @@
  * $Id$
  *
  */
-class CRM_Attentively_BAO_Attentively extends CRM_Attentively_DAO_AttentivelyWatchedTerms {
+class CRM_Attentively_BAO_AttentivelyWatchedTerms extends CRM_Attentively_DAO_AttentivelyWatchedTerms {
 
   /**
    * Fetch object based on array of properties.
