@@ -2,6 +2,12 @@
    <div class="clear"></div>
    <div>
      <ol>
+        <li>You agree to share with JMA Consulting for the purposes of billing and support: 
+        <ol>
+            <li>The domain name and <a href="">Organization address and contact information</a> about the organization using CiviCRM.</li>
+            <li>Aggregate information about the number of contacts in your CiviCRM instance and how many of them have been matched by Attentive.ly.</li>
+        </ol>
+        </li>
         <li>By using this extension to connect your CiviCRM installation with an Attentive.ly account, 
         you accept full responsibility for complying with the Terms and Conditions associated with your Attentive.ly account, 
         including all payments due from you to Attentive.ly. This includes charges that result from contacts automatically added to your Attentive.ly account from CiviCRM 
