@@ -1,7 +1,4 @@
 <div class="crm-section">
-   <div id="help">
-     <div class="label">{$form.access_token.label}</div>&nbsp;&nbsp;&nbsp;{$form.access_token.html}
-   </div>
    <div class="clear"></div>
    <div>
      <ol>
@@ -17,6 +14,10 @@
      <div class="label">{$form.accept.label}</div>&nbsp;&nbsp;&nbsp;{$form.accept.html}
    </div>
    <div class="clear"></div>
+   <div><p>To connect this CiviCRM instance with Attentive.ly, we need to send you over to the Attentive.ly and have you login there. 
+If you are setting up a new Attentive.ly account, please fill out the form once you are redirected to https://attentive.ly. 
+If you are connecting CiviCRM to an existing Attentive.ly account, after you are redirected please click Sign In on the upper right.
+In both cases, you'll be redirected right back here once you are done.</p></div>   
    <div class="crm-submit-buttons">
      {include file="CRM/common/formButtons.tpl" location="top"}
    </div>

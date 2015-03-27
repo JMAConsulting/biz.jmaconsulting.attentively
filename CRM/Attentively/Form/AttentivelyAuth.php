@@ -10,21 +10,27 @@ require_once 'CRM/Core/Form.php';
 class CRM_Attentively_Form_AttentivelyAuth extends CRM_Core_Form {
   function buildQuickForm() {
 
-    $this->add('text', "access_token", ts('Access Token'), array(
-        'size' => 30, 'maxlength' => 60, 'readonly' => TRUE)
-    );
-    $this->add('checkbox', "accept", ts('I have read and accepted the terms and conditions'));
+    $this->add('hidden', "access_token", ts('Access Token'));
+    
+    $defaults = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, NULL, 'name', FALSE);
+    $buttonText = 'Authorize and Connect Attentive.ly';
+    $extraParams = array();
+    if (!empty($defaults['access_token'])) {
+      $buttonText = 'Reconnect to Attentive.ly';
+      $defaults['accept'] = TRUE;
+      $extraParams = array('disabled' => 'disabled');      
+    }
+    $this->addElement('checkbox', "accept", ts('I have read and accepted the terms and conditions'), NULL, $extraParams);
+
     $this->addButtons(array(
       array(
         'type' => 'submit',
-        'name' => ts('Authorize'),
+        'name' => ts($buttonText),
         'isDefault' => TRUE,
       ),
     ));
 
-    $defaults = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, NULL, 'name', FALSE);
     $this->setDefaults($defaults);
-    $this->freeze('access_token');
     $this->addFormRule(array('CRM_Attentively_Form_AttentivelyAuth', 'formRule'), $this);
     parent::buildQuickForm();
   }
