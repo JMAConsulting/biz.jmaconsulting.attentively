@@ -7,13 +7,10 @@
      <ol>
         <li>By using this extension to connect your CiviCRM installation with an Attentive.ly account, 
         you accept full responsibility for complying with the Terms and Conditions associated with your Attentive.ly account, 
-        including all payments due from you to Attentive.ly. 
-        This includes charges that result from contacts automatically added to your Attentive.ly account from CiviCRM 
+        including all payments due from you to Attentive.ly. This includes charges that result from contacts automatically added to your Attentive.ly account from CiviCRM 
         by this extension.
         </li>
         <li>You agree to comply with all relevant anti-spam and privacy legislation.</li>
-        <li>The extension software is licensed under the AGPLv3 licence (https://www.gnu.org/licenses/agpl-3.0.html). 
-        You acknowledge and agree to the license, specifically including its Disclaimer of Warrantee and Limitation of Liability in sections 15-17 of the license.</li>
      </ol>  
    </div>
    <div class="clear"></div>
