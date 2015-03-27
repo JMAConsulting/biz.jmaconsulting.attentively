@@ -8,21 +8,13 @@
                <li>Aggregate information about the number of contacts in your CiviCRM instance and how many of them have been matched by Attentive.ly.</li>
             </ol>
         </li>
-        <li>You accept full responsibility for complying with the Terms and Conditions associated with your Attentive.ly account, 
-        including all payments due from you to Attentive.ly. This includes charges that result from contacts automatically added to your Attentive.ly account from CiviCRM 
-        by this extension.
+        <li>You accept full responsibility for complying with the Terms and Conditions associated with your Attentive.ly account, including all payments due from you to Attentive.ly. This includes charges that result from contacts automatically added to your Attentive.ly account from CiviCRM by this extension.
         </li>
-        <li>You agree to the AGPL-3.0 licence under which this extension software is provided, 
-         including its Warrantee and Limitation of Liability provisions in sections 15-17.</li>
-         <li>You agree to indemnify JMA Consulting and its members, managers, affiliates, officers, agents and employees harmless 
-         from any third party claims, suits, losses or damages, liabilities, costs and expenses, including reasonable attorneys' fees, 
-         arising from or related to their breach of this Agreement.
-         The extension software and the Attentive.ly service may provide hyperlinks to websites operated by third parties 
-         and such hyperlinks are provided only for your reference and convenience. 
-         A hyperlink from this Service to another website does not mean or imply that JMA Consulting endorses 
-         either the operator of the hyperlinked website or the content on the website. 
-         You are solely responsible for determining to extent to which you use any content on any website to which you link 
-         from the Service and you agree not to hold JMA Consulting responsible for the content or operation of the website.</li>
+        <li>You agree to the AGPL-3.0 licence under which this extension software is provided, including its Warrantee and Limitation of Liability provisions in sections 15-17.</li>
+         <li>You agree to indemnify JMA Consulting and its members, managers, affiliates, officers, agents and employees harmless from any third party claims, suits, losses or damages, liabilities, costs and expenses, including reasonable attoneys' fees, arising from or related to their breach of this Agreement.
+         The extension software and the Attentive.ly service may provide hyperlinks to websites operated by third parties and such hyperlinks are provided only for your reference and convenience. 
+         A hyperlink from this Service to another website does not mean or imply that JMA Consulting endorses either the operator of the hyperlinked website or the content on the website. 
+         You are solely responsible for determining to extent to which you use any content on any website to which you link from the Service and you agree not to hold JMA Consulting responsible for the content or operation of the website.</li>
         <li>You agree that JMA Consulting may change the terms of this agreement from time to time by email notification to you.</li>
      </ol>  
    </div>
