@@ -31,7 +31,9 @@ class CRM_Attentively_Form_AttentivelyAuth extends CRM_Core_Form {
     ));
 
     $this->setDefaults($defaults);
-    $this->addFormRule(array('CRM_Attentively_Form_AttentivelyAuth', 'formRule'), $this);
+    if (empty($extraParams)) {
+      $this->addFormRule(array('CRM_Attentively_Form_AttentivelyAuth', 'formRule'), $this);
+    }
     parent::buildQuickForm();
   }
 
