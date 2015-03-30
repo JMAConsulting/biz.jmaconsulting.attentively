@@ -68,7 +68,7 @@ class CRM_Attentively_BAO_Attentively {
         AND e.email IS NOT NULL
         AND c.is_deleted <> 1
         GROUP BY c.id";  // used to determine initial count and to retrieve records and insert processed records
-    $count = CRM_Core_DAO::executeQuery("SELECT COUNT(*) FROM (SELECT COUNT(*) " . $sqlBody . ") as S"); // total members to send
+    $count = CRM_Core_DAO::singleValueQuery("SELECT COUNT(*) FROM (SELECT COUNT(*) " . $sqlBody . ") as S"); // total members to send
     $memberCount = 0; // number of members successfully sent
     $startRow = 0; // next row to send
     while ($count > 0) {
