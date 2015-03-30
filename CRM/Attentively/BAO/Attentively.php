@@ -67,12 +67,12 @@ class CRM_Attentively_BAO_Attentively {
         AND m.is_processed IS NULL
         AND e.email IS NOT NULL
         AND c.is_deleted <> 1
-        GROUP BY c.id";
+        GROUP BY c.id";  // used to determine initial count and to retrieve records and insert processed records
     $count = CRM_Core_DAO::executeQuery("SELECT COUNT(*) FROM (SELECT COUNT(*) " . $sqlBody . ") as S"); // total members to send
     $memberCount = 0; // number of members successfully sent
-    $rowCount = 0; // next row to send
+    $startRow = 0; // next row to send
     while ($count > 0) {
-      $sqlBodyLimited = $sqlBody . " LIMIT $rowCount, " . ROWCOUNT;
+      $sqlBodyLimited = $sqlBody . " LIMIT $startRow, " . ROWCOUNT; // will use to insert processed records on success
       $sql = "SELECT c.id, c.first_name, c.last_name, e.email, g.title " . $sqlBodyLimited;
       $contacts = CRM_Core_DAO::executeQuery($sql);
       if ($contacts->N == 0) {
@@ -89,15 +89,16 @@ class CRM_Attentively_BAO_Attentively {
       $object = json_encode(json_decode(json_encode($members), FALSE));
       $member = '&members=' . $object;
       $result = self::getAttentivelyResponse('members_add', $member);
-      $count -= $contacts->N;
       if ($result['success']) {
-        $memberCount += $result['parameters']->members; 
+        $memberCount += $result['parameters']->members; // Question: why not use $contacts->N for consistency with count?
         $sql = "INSERT INTO civicrm_attentively_member_processed (contact_id, is_processed) 
         SELECT c.id, 1 " . $sqlBodyLimited;
         CRM_Core_DAO::singleValueQuery($sql);
       } else {
        // handle errors here, maybe concatenating error messages into a string to be returned by this function
       }
+      $count -= $contacts->N;
+      $startRow += $contacts->N;
     }
     return $memberCount;
   }
