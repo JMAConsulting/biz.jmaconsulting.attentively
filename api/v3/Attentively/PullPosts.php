@@ -9,7 +9,13 @@
  * @see civicrm_api3_create_error
  * @throws API_Exception
  */
-function civicrm_api3_attentively_pullposts($params) {
-  CRM_Attentively_BAO_Attentively::pullposts($params['terms']);
+function civicrm_api3_attentively_pullposts() {
+  $count = CRM_Attentively_BAO_Attentively::pullPosts();
+  if ($count) {
+    return civicrm_api3_create_success(ts('Total posts fetched from Attentive.ly: ' . $count));
+  }
+  else {
+    return civicrm_api3_create_error(ts('Error while fetching posts from Attentive.ly'));
+  }
 }
 
