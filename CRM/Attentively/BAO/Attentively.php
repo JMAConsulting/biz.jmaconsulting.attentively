@@ -61,12 +61,15 @@ class CRM_Attentively_BAO_Attentively {
     $count = civicrm_api3('Contact', 'getCount', array('sequential' => 1));
     $memberCount = 0;
     while ($count > 0) {
-      $sql = "SELECT c.id, c.first_name, c.last_name, e.email FROM civicrm_contact c 
+      $sql = "SELECT c.id, c.first_name, c.last_name, e.email, g.title FROM civicrm_contact c 
         LEFT JOIN civicrm_email e ON e.contact_id = c.id
         LEFT JOIN civicrm_attentively_member_processed m ON m.contact_id = c.id 
+        LEFT JOIN civicrm_group_contact gc ON gc.contact_id = c.id
+        LEFT JOIN civicrm_group g ON gc.group_id = g.id
         WHERE e.is_primary = 1
         AND m.is_processed IS NULL
         AND e.email IS NOT NULL
+        AND c.is_deleted <> 1
         GROUP BY c.id LIMIT 0, " . ROWCOUNT;
       $contacts = CRM_Core_DAO::executeQuery($sql);
       if ($contacts->N == 0) {
@@ -76,9 +79,10 @@ class CRM_Attentively_BAO_Attentively {
       while ($contacts->fetch()) {
         CRM_Core_DAO::singleValueQuery("INSERT INTO civicrm_attentively_member_processed (contact_id, is_processed) VALUES ({$contacts->id}, 1)");
         $members[$contacts->id]['contact_id'] =  $contacts->id;
-        $members[$contacts->id]['first_name'] =  $contacts->first_name;
-        $members[$contacts->id]['last_name'] =  $contacts->last_name;
+        $members[$contacts->id]['first_name'] =  addslashes($contacts->first_name);
+        $members[$contacts->id]['last_name'] =  addslashes($contacts->last_name);
         $members[$contacts->id]['email_address'] =  $contacts->email;
+        $members[$contacts->id]['group'] =  addslashes($contacts->title);
       }
       $object = json_encode(json_decode(json_encode($members), FALSE));
       $member = '&members=' . $object;
