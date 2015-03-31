@@ -58,10 +58,7 @@ class CRM_Attentively_BAO_Attentively {
   }
 
   static public function pushMembers() {
-    $count = civicrm_api3('Contact', 'getCount', array('sequential' => 1));
-    $memberCount = 0;
-    while ($count > 0) {
-      $sql = "SELECT c.id, c.first_name, c.last_name, e.email, g.title FROM civicrm_contact c 
+    $sqlBody = "FROM civicrm_contact c 
         LEFT JOIN civicrm_email e ON e.contact_id = c.id
         LEFT JOIN civicrm_attentively_member_processed m ON m.contact_id = c.id 
         LEFT JOIN civicrm_group_contact gc ON gc.contact_id = c.id
@@ -70,14 +67,19 @@ class CRM_Attentively_BAO_Attentively {
         AND m.is_processed IS NULL
         AND e.email IS NOT NULL
         AND c.is_deleted <> 1
-        GROUP BY c.id LIMIT 0, " . ROWCOUNT;
+        GROUP BY c.id";  // used to determine initial count and to retrieve records and insert processed records
+    $count = CRM_Core_DAO::singleValueQuery("SELECT COUNT(*) FROM (SELECT COUNT(*) " . $sqlBody . ") as S"); // total members to send
+    $memberCount = 0; // number of members successfully sent
+    $startRow = 0; // next row to send
+    while ($count > 0) {
+      $sqlBodyLimited = $sqlBody . " LIMIT $startRow, " . ROWCOUNT; // will use to insert processed records on success
+      $sql = "SELECT c.id, c.first_name, c.last_name, e.email, g.title " . $sqlBodyLimited;
       $contacts = CRM_Core_DAO::executeQuery($sql);
       if ($contacts->N == 0) {
         break;
       }
       $members = array();
       while ($contacts->fetch()) {
-        CRM_Core_DAO::singleValueQuery("INSERT INTO civicrm_attentively_member_processed (contact_id, is_processed) VALUES ({$contacts->id}, 1)");
         $members[$contacts->id]['contact_id'] =  $contacts->id;
         $members[$contacts->id]['first_name'] =  addslashes($contacts->first_name);
         $members[$contacts->id]['last_name'] =  addslashes($contacts->last_name);
@@ -87,10 +89,16 @@ class CRM_Attentively_BAO_Attentively {
       $object = json_encode(json_decode(json_encode($members), FALSE));
       $member = '&members=' . $object;
       $result = self::getAttentivelyResponse('members_add', $member);
-      $count -= $contacts->N;
       if ($result['success']) {
-        $memberCount += $result['parameters']->members; 
+        $memberCount += $result['parameters']->members; // Question: why not use $contacts->N for consistency with count?
+        $sql = "INSERT INTO civicrm_attentively_member_processed (contact_id, is_processed) 
+        SELECT c.id, 1 " . $sqlBodyLimited;
+        CRM_Core_DAO::singleValueQuery($sql);
+      } else {
+       // handle errors here, maybe concatenating error messages into a string to be returned by this function
       }
+      $count -= $contacts->N;
+      $startRow += $contacts->N;
     }
     return $memberCount;
   }
