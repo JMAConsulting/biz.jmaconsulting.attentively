@@ -72,6 +72,7 @@ class CRM_Attentively_BAO_Attentively {
     $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, " AND v.name = 'access_token' ", 'name', FALSE);
     $memberCount = 0; // number of members successfully sent
     $startRow = 0; // next row to send
+    $errors = array();
     while ($count > 0) {
       $sqlBodyLimited = $sqlBody . " LIMIT $startRow, " . ROWCOUNT; // will use to insert processed records on success
       $sql = "SELECT c.id, c.first_name, c.last_name, e.email, g.title " . $sqlBodyLimited;
@@ -90,17 +91,17 @@ class CRM_Attentively_BAO_Attentively {
       }
       $result = self::getAttentivelyResponse('members_add', $members, TRUE);
       if ($result['success']) {
-        $memberCount += $result['parameters']->members; // Question: why not use $contacts->N for consistency with count?
+        $memberCount += $contacts->N;
         $sql = "INSERT INTO civicrm_attentively_member_processed (contact_id, is_processed) 
         SELECT c.id, 1 " . $sqlBodyLimited;
         CRM_Core_DAO::singleValueQuery($sql);
       } else {
-       // handle errors here, maybe concatenating error messages into a string to be returned by this function
+        $errors[] = $result['error'];
       }
       $count -= $contacts->N;
       $startRow += $contacts->N;
     }
-    return $memberCount;
+    return empty($errors) ? $memberCount : array_unique($errors);
   }
 
   static public function pullMembers() {
