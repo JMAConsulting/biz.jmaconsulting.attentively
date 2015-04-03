@@ -58,10 +58,7 @@ class CRM_Attentively_BAO_Attentively {
   }
 
   static public function pushMembers() {
-    $count = civicrm_api3('Contact', 'getCount', array('sequential' => 1));
-    $memberCount = 0;
-    while ($count > 0) {
-      $sql = "SELECT c.id, c.first_name, c.last_name, e.email, g.title FROM civicrm_contact c 
+    $sqlBody = "FROM civicrm_contact c 
         LEFT JOIN civicrm_email e ON e.contact_id = c.id
         LEFT JOIN civicrm_attentively_member_processed m ON m.contact_id = c.id 
         LEFT JOIN civicrm_group_contact gc ON gc.contact_id = c.id
@@ -70,29 +67,41 @@ class CRM_Attentively_BAO_Attentively {
         AND m.is_processed IS NULL
         AND e.email IS NOT NULL
         AND c.is_deleted <> 1
-        GROUP BY c.id LIMIT 0, " . ROWCOUNT;
+        GROUP BY c.id";  // used to determine initial count and to retrieve records and insert processed records
+    $count = CRM_Core_DAO::singleValueQuery("SELECT COUNT(*) FROM (SELECT COUNT(*) " . $sqlBody . ") as S"); // total members to send
+    $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, " AND v.name = 'access_token' ", 'name', FALSE);
+    $memberCount = 0; // number of members successfully sent
+    $startRow = 0; // next row to send
+    $errors = array();
+    while ($count > 0) {
+      $sqlBodyLimited = $sqlBody . " LIMIT $startRow, " . ROWCOUNT; // will use to insert processed records on success
+      $sql = "SELECT c.id, c.first_name, c.last_name, e.email, g.title " . $sqlBodyLimited;
       $contacts = CRM_Core_DAO::executeQuery($sql);
       if ($contacts->N == 0) {
         break;
       }
       $members = array();
+      $members['access_token'] = $settings['access_token']; //Not sure why this needs to be done before the members array, but doesn't work if done in the function below. 
       while ($contacts->fetch()) {
-        CRM_Core_DAO::singleValueQuery("INSERT INTO civicrm_attentively_member_processed (contact_id, is_processed) VALUES ({$contacts->id}, 1)");
-        $members[$contacts->id]['contact_id'] =  $contacts->id;
-        $members[$contacts->id]['first_name'] =  addslashes($contacts->first_name);
-        $members[$contacts->id]['last_name'] =  addslashes($contacts->last_name);
-        $members[$contacts->id]['email_address'] =  $contacts->email;
-        $members[$contacts->id]['group'] =  addslashes($contacts->title);
+        $members['members'][$contacts->id]['contact_id'] =  $contacts->id;
+        $members['members'][$contacts->id]['first_name'] =  addslashes($contacts->first_name);
+        $members['members'][$contacts->id]['last_name'] =  addslashes($contacts->last_name);
+        $members['members'][$contacts->id]['email_address'] =  $contacts->email;
+        $members['members'][$contacts->id]['group'] =  addslashes($contacts->title);
       }
-      $object = json_encode(json_decode(json_encode($members), FALSE));
-      $member = '&members=' . $object;
-      $result = self::getAttentivelyResponse('members_add', $member);
-      $count -= $contacts->N;
+      $result = self::getAttentivelyResponse('members_add', $members, TRUE);
       if ($result['success']) {
-        $memberCount += $result['parameters']->members; 
+        $memberCount += $contacts->N;
+        $sql = "INSERT INTO civicrm_attentively_member_processed (contact_id, is_processed) 
+        SELECT c.id, 1 " . $sqlBodyLimited;
+        CRM_Core_DAO::singleValueQuery($sql);
+      } else {
+        $errors[] = $result['error'];
       }
+      $count -= $contacts->N;
+      $startRow += $contacts->N;
     }
-    return $memberCount;
+    return empty($errors) ? $memberCount : array_unique($errors);
   }
 
   static public function pullMembers() {
@@ -338,9 +347,15 @@ class CRM_Attentively_BAO_Attentively {
   }
 
 
-  function getAttentivelyResponse($url, $postPart) {
+  function getAttentivelyResponse($url, $postPart, $isMember = FALSE) {
     $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, " AND v.name = 'access_token' ", 'name', FALSE);
-    $post = 'access_token=' . $settings['access_token'] . $postPart;
+    // FIXME: should refactor for all POST fields
+    if ($isMember) {
+      $post = http_build_query($postPart);
+    }
+    else {
+      $post = 'access_token=' . $settings['access_token'] . $postPart;
+    }
     $url = self::checkEnvironment() . $url;
     $ch = curl_init( $url );
     curl_setopt( $ch, CURLOPT_POST, TRUE);
@@ -349,6 +364,7 @@ class CRM_Attentively_BAO_Attentively {
     curl_setopt( $ch, CURLOPT_HEADER, 0);
     curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
     
+
     $response = curl_exec( $ch );
     return get_object_vars(json_decode($response));
   }
