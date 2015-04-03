@@ -10,12 +10,16 @@
  * @throws API_Exception
  */
 function civicrm_api3_attentively_pushmembers() {
-  $count = CRM_Attentively_BAO_Attentively::pushMembers();
-  if ($count) {
-    return civicrm_api3_create_success(ts('Total contacts pushed to Attentive.ly: ' . $count));
+  $result = CRM_Attentively_BAO_Attentively::pushMembers();
+  if (!is_array($result)) {
+    if ($result) {
+      return civicrm_api3_create_success(ts('Total contacts pushed to Attentive.ly: ' . $count));
+    }
+    else {
+      return civicrm_api3_create_success(ts('No contacts were sent to Attentive.ly!'));
+    }
   }
   else {
-    return civicrm_api3_create_success(ts('No contacts were sent to Attentive.ly!'));
+    return civicrm_api3_create_success(ts('There was an error sending contacts to Attentive.ly. Error(s): ' . implode(',' , $result)));
   }
 }
-
