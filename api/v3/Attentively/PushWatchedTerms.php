@@ -21,7 +21,7 @@ function civicrm_api3_attentively_pushwatchedterms() {
     }
   }
   else {
-    return civicrm_api3_create_success(ts('There was an error pushing watched terms to Attentive.ly. Error(s): ' . implode(',' , $result)));
+    return civicrm_api3_create_error(ts('There was an error pushing watched terms to Attentive.ly. Error(s): ' . implode(',' , $result)));
   }
 }
 

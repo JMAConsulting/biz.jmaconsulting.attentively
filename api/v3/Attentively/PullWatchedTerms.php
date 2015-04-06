@@ -20,7 +20,7 @@ function civicrm_api3_attentively_pullwatchedterms() {
     }
   }
   else {
-    return civicrm_api3_create_success(ts('There was an error fetching watched terms from Attentive.ly. Error(s): ' . implode(',' , $result)));
+    return civicrm_api3_create_error(ts('There was an error fetching watched terms from Attentive.ly. Error(s): ' . implode(',' , $result)));
   }
 }
 
