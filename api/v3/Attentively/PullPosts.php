@@ -10,12 +10,17 @@
  * @throws API_Exception
  */
 function civicrm_api3_attentively_pullposts() {
-  $count = CRM_Attentively_BAO_Attentively::pullPosts();
-  if ($count) {
-    return civicrm_api3_create_success(ts('Total posts fetched from Attentive.ly: ' . $count));
+  $result = CRM_Attentively_BAO_Attentively::pullPosts();
+  if (!is_array($result)) {
+    if ($result) {
+      return civicrm_api3_create_success(ts('Total posts fetched from Attentive.ly: ' . $result));
+    }
+    else {
+      return civicrm_api3_create_success(ts('No posts were fetched from Attentive.ly!'));
+    }
   }
   else {
-    return civicrm_api3_create_error(ts('Error while fetching posts from Attentive.ly'));
+    return civicrm_api3_create_error(ts('There was an error fetching posts from Attentive.ly. Error(s): ' . implode(',' , $result)));
   }
 }
 

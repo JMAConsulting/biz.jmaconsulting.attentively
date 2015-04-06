@@ -10,13 +10,17 @@
  * @throws API_Exception
  */
 function civicrm_api3_attentively_pullwatchedterms() {
-  $count = CRM_Attentively_BAO_Attentively::pullWatchedTerms();
-  
-  if ($count) {
-    return civicrm_api3_create_success(ts('Total watched terms fetched: ' . $count));
+  $result = CRM_Attentively_BAO_Attentively::pullWatchedTerms();
+  if (!is_array($result)) {
+    if ($result) {
+      return civicrm_api3_create_success(ts('Total watched terms fetched: ' . $result));
+    }
+    else {
+      return civicrm_api3_create_success(ts('No watched terms were fetched from Attentive.ly!'));
+    }
   }
   else {
-    return civicrm_api3_create_error(ts('Error while fetching watched terms'));
+    return civicrm_api3_create_error(ts('There was an error fetching watched terms from Attentive.ly. Error(s): ' . implode(',' , $result)));
   }
 }
 

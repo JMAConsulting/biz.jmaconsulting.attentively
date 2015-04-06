@@ -10,12 +10,18 @@
  * @throws API_Exception
  */
 function civicrm_api3_attentively_pushwatchedterms() {
-  $count = CRM_Attentively_BAO_Attentively::pushWatchedTerms();
-  if ($count) {
-    return civicrm_api3_create_success(ts('Total terms pushed to Attentive.ly: ' . $count));
+  $result = CRM_Attentively_BAO_Attentively::pushWatchedTerms();
+  
+  if (!is_array($result)) {
+    if ($result) {
+      return civicrm_api3_create_success(ts('Total watched terms pushed: ' . $result));
+    }
+    else {
+      return civicrm_api3_create_success(ts('No watched terms were pushed to Attentive.ly!'));
+    }
   }
   else {
-    return civicrm_api3_create_error(ts('No terms were sent to Attentive.ly!'));
+    return civicrm_api3_create_error(ts('There was an error pushing watched terms to Attentive.ly. Error(s): ' . implode(',' , $result)));
   }
 }
 
