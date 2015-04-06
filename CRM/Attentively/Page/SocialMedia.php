@@ -9,8 +9,7 @@ class CRM_Attentively_Page_SocialMedia extends CRM_Core_Page {
     $cid = $session->get('view.id');
     $post = array();
     $networkData = CRM_Attentively_BAO_Attentively::getNetworks($cid);
-    $kloutScore = CRM_Attentively_BAO_Attentively::getKloutScore($cid);
-    $memberID = CRM_Attentively_BAO_Attentively::getMemberID($cid);
+    $attContact = CRM_Attentively_BAO_Attentively::getAttentivelyFromContact($cid, array('klout_score', 'member_id'));
     $posts= CRM_Attentively_BAO_Attentively::getPosts($cid);
     if ($posts) {
       foreach ($posts as $key => $value) {
@@ -23,13 +22,13 @@ class CRM_Attentively_Page_SocialMedia extends CRM_Core_Page {
     $attURL = "https://dashboard.attentive.ly/";
 
     if ($memberID) {
-      $attURL .= "dashboard/contact_detail/{$memberID}";
-      $this->assign('memID', $memberID);
+      $attURL .= "dashboard/contact_detail/{$attContact['member_id']}";
+      $this->assign('memID', $attContact['member_id']);
     }
     $this->assign('attURL', $attURL);
     $this->assign('posts', $post);
     $this->assign('networkData', $networkData);
-    $this->assign('klout', $kloutScore);
+    $this->assign('klout', $attContact['klout']);
     parent::run();
   }
 }

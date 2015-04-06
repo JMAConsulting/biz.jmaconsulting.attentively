@@ -117,7 +117,7 @@ class CRM_Attentively_BAO_Attentively {
     curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
     $response = curl_exec( $ch );
     $result = get_object_vars(json_decode($response));
-    $network = array();
+    $network = $errors = array();
     // Check the deferred status [This allows us to call all records without pagination]
     if ($result['success'] && $result['deferred_status'] == 'queued') {
       // Call API again until deferred status is ready
@@ -130,6 +130,9 @@ class CRM_Attentively_BAO_Attentively {
         $response = curl_exec( $ch );
         $result = get_object_vars(json_decode($response));
       }
+    }
+    else {
+      $errors[] = $result['error'];
     }
     curl_close($ch);
     
@@ -170,10 +173,14 @@ class CRM_Attentively_BAO_Attentively {
       }
       return count($result['members']);
     }
-    return FALSE;
+    else {
+      $errors[] = $result['error'];
+    }
+    return array_unique($errors);
   }
 
   static public function pullWatchedTerms() {
+    $errors = array();
     $result = self::getAttentivelyResponse('watched_terms', NULL);
     $dao = new CRM_Attentively_DAO_AttentivelyWatchedTerms();
     if ($result['success'] && !empty($result['watched_terms'])) {
@@ -184,7 +191,10 @@ class CRM_Attentively_BAO_Attentively {
       }
       return count($result['watched_terms']);
     }
-    return FALSE;
+    else {
+      $errors[] = $result['error'];
+    }
+    return array_unique($errors);
   }
 
   static public function getPosts($cid) {
@@ -200,7 +210,7 @@ class CRM_Attentively_BAO_Attentively {
   }
 
   static public function pullPosts() {
-    $terms = array();
+    $terms = $errors = array();
     CRM_Attentively_BAO_AttentivelyWatchedTerms::getWatchedTerms($terms);
     foreach ($terms as $term) {
       $allTerms .= $term['term'] . ',';
@@ -227,10 +237,14 @@ class CRM_Attentively_BAO_Attentively {
       }
       return count($result['posts']);
     }
-    return FALSE;
+    else {
+      $errors[] = $result['error'];
+    }
+    return array_unique($errors);
   }
 
   static public function pushWatchedTerms() {
+    $errors = array();
     $terms = CRM_Core_OptionGroup::values('attentively_terms', FALSE, FALSE, FALSE, NULL, 'label', FALSE);
     if (empty($terms)) {
       return 0;
@@ -240,7 +254,10 @@ class CRM_Attentively_BAO_Attentively {
     if ($result['success']) {
       return count($result['parameters']->terms);
     }
-    return FALSE;
+    else {
+      $errors[] = $result['error'];
+    }
+    return array_unique($errors);
   }
 
   static public function getNetworks($cid) {
@@ -253,13 +270,13 @@ class CRM_Attentively_BAO_Attentively {
     $dao = CRM_Core_DAO::executeQuery($sql);
     while ($dao->fetch()) {
       if ($dao->name == 'gravatar') {
-        $email = self::getAttentivelyEmail($cid);
+        $email = self::getAttentivelyContact($cid, 'email_address');
         $atts = array(
           'position' => 'static',
           'border-top-left-radius' => '5px',
           'border-top-right-radius' => '5px',            
         );
-        $network[$dao->name]['image'] = self::getGravatar($email, TRUE, $atts);
+        $network[$dao->name]['image'] = self::getGravatar($email['email_address'], TRUE, $atts);
       }
       elseif ($dao->name != 'klout') {
         $network[$dao->name]['url'] = $dao->url;
@@ -275,24 +292,23 @@ class CRM_Attentively_BAO_Attentively {
     return $network;
   }
 
-  static public function getKloutScore($cid) {
+  static public function getAttentivelyFromContact($cid, $value) {
     if (!$cid) {
       return NULL;
     }
-    $sql = "SELECT klout_score FROM civicrm_attentively_member
+    $members = array();
+    $total = count($value);
+    $count = 0;
+    $sql = "SELECT ". implode(',' , $value) ." FROM civicrm_attentively_member
       WHERE contact_id = {$cid}";
-    $klout = CRM_Core_DAO::singleValueQuery($sql);
-    return $klout;
-  }
-
-  static public function getMemberID($cid) {
-    if (!$cid) {
-      return NULL;
+    $dao = CRM_Core_DAO::executeQuery($sql);
+    $dao->fetch();
+    while ($total) {
+      $members[$value[$count]] = $dao->$value[$count];
+      $count++;
+      $total--;
     }
-    $sql = "SELECT member_id FROM civicrm_attentively_member
-      WHERE contact_id = {$cid}";
-    $id = CRM_Core_DAO::singleValueQuery($sql);
-    return $id;
+    return !empty($members) ? $members : NULL;
   }
 
   static public function getCount($cid) {
@@ -301,16 +317,6 @@ class CRM_Attentively_BAO_Attentively {
     $count = CRM_Core_DAO::singleValueQuery($sql);
     return $count;
   } 
-  
-  static public function getAttentivelyEmail($cid) {
-    if (!$cid) {
-      return NULL;
-    }
-    $sql = "SELECT email_address FROM civicrm_attentively_member
-      WHERE contact_id = {$cid}";
-    $email = CRM_Core_DAO::singleValueQuery($sql);
-    return $email;
-  }
 
   /**
    * Get either a Gravatar URL or complete image tag for a specified email address.
