@@ -21,7 +21,7 @@ function civicrm_api3_attentively_pullmembers() {
     }
   }
   else {
-    return civicrm_api3_create_success(ts('There was an error pulling contacts from Attentive.ly. Error(s): ' . implode(',' , $result)));
+    return civicrm_api3_create_error(ts('There was an error pulling contacts from Attentive.ly. Error(s): ' . implode(',' , $result)));
   }
 }
 
