@@ -21,6 +21,7 @@
       <value>none</value>
       <name>access_token</name>
       <is_reserved>1</is_reserved>
+      <weight>1</weight>
       <is_active>1</is_active>
       <option_group_name>attentively_auth</option_group_name>
     </OptionValue>
@@ -30,6 +31,7 @@
       <name>post_period_to_retrieve</name>
       <is_reserved>0</is_reserved>
       <is_active>1</is_active>
+      <weight>2</weight>
       <option_group_name>attentively_auth</option_group_name>
     </OptionValue>
   </OptionValues>
