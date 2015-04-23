@@ -270,7 +270,7 @@ class CRM_Attentively_BAO_Attentively {
     $dao = CRM_Core_DAO::executeQuery($sql);
     while ($dao->fetch()) {
       if ($dao->name == 'gravatar') {
-        $email = self::getAttentivelyContact($cid, 'email_address');
+        $email = self::getAttentivelyFromContact($cid, array('email_address'));
         $atts = array(
           'position' => 'static',
           'border-top-left-radius' => '5px',
