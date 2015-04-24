@@ -21,14 +21,14 @@ class CRM_Attentively_Page_SocialMedia extends CRM_Core_Page {
     }
     $attURL = "https://dashboard.attentive.ly/";
 
-    if ($memberID) {
+    if ($attContact['member_id']) {
       $attURL .= "dashboard/contact_detail/{$attContact['member_id']}";
       $this->assign('memID', $attContact['member_id']);
     }
     $this->assign('attURL', $attURL);
     $this->assign('posts', $post);
     $this->assign('networkData', $networkData);
-    $this->assign('klout', $attContact['klout']);
+    $this->assign('klout', $attContact['klout_score']);
     parent::run();
   }
 }
