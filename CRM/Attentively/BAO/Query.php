@@ -81,11 +81,11 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
     switch ($name) {
     case 'network_options':
       $this->networkOptions($values, $query);
-      return;
+      break;
 
     case 'network_toggle':
     case 'network_operator': // handled above
-      return;
+      break;
       
     case 'network_klout_score_low':      
     case 'network_klout_score_high':
@@ -101,7 +101,7 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
            array(1 => $name)
            )
         );
-        return;
+        break;
       }
     }
   }
@@ -131,20 +131,22 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
       $networks,
       FALSE,
       array(
-        'id' => 'network_options',
+        'class' => ' crm-select2 ',
         'multiple' => 'multiple',
-        'title' => ts('- select -'),
+        'placeHolder' => ts('- Select Network -'),
       )
     );
 
-    $form->addElement(
+    $form->add(
       'select',
       'network_operator',
       ts('Operator'),
       array(
         'OR' => ts('OR'),
         'AND' => ts('AND'),
-      )
+      ),
+      FALSE,
+      array('class' => ' crm-select2 two')
     );
 
     $options = array(

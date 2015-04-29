@@ -23,51 +23,61 @@
  | see the CiviCRM license FAQ at http://civicrm.org/licensing        |
  +--------------------------------------------------------------------+
 *}
-
 <table class="form-layout">	
-<tr>
-  <td>
-    <label><b>Klout Score</b></label>
-  </td>
-</tr>
-<tr>
-  <td>
-    <label>{$form.network_klout_score_low.label}</label> <br />
-    {$form.network_klout_score_low.html}
-  </td>
-  <td>
-    {$form.network_klout_score_high.label}<br />
-    {$form.network_klout_score_high.html}
-   </td>
-   <td>
+  <tr>
+    <td>
+      <label><b>Klout Score</b></label>
+    </td>
+  </tr>
+  <tr>
+    <td>
       <table class="form-layout-compressed">
-      <tr>
-        <td>
+        <tr>
+          <td>
+    	    {$form.network_klout_score_low.label} <br />
+    	    {$form.network_klout_score_low.html}
+  	  </td>
+  	  <td>
+     	    {$form.network_klout_score_high.label}<br />
+    	    {$form.network_klout_score_high.html}
+          </td>
+      	</tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <table class="form-layout-compressed">
+        <tr>
+          <td>
             {$form.network_toggle.html}
-        </td>
-      </tr>
-      <tr>
-        <td>
+          </td>
+        </tr>
+      	<tr>
+          <td>
             {$form.network_options.html}
-        </td>
-        <td style="vertical-align:middle">
+          </td>
+          <td style="vertical-align:middle">
             <div id="network-operator-wrapper">{$form.network_operator.html}</div>
-        </td>
-      </tr>
+          </td>
+        </tr>
       </table>
       {literal}
         <script type="text/javascript">
-          cj("select#network_options").crmasmSelect();
-          cj("select#network_options").change(function() {
-            var items = cj(this).siblings('ul.crmasmList').find('li').length;
-            if (items > 1) {
-              cj('#network-operator-wrapper').show();
-            } else {
-              cj('#network-operator-wrapper').hide();
-            }
-          }).change();
+	showHideNetworkOperator();
+	cj('#network_options').click(function() {
+	  showHideNetworkOperator();
+	});
+	function showHideNetworkOperator() {
+	 if (cj('#network_options').val()) {
+	   cj('#network-operator-wrapper').show();
+	 }
+	 else {
+	   cj('#network-operator-wrapper').hide();
+	 }	  
+	}
         </script>
       {/literal}
     </td>
-</tr>
+  </tr>
 </table>
