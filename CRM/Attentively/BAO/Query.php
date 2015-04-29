@@ -122,6 +122,8 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
   public function buildSearchForm(&$form) {
     $form->addElement('text', 'network_klout_score_low', ts('From'));
     $form->addElement('text', 'network_klout_score_high', ts('To'));
+    $form->addRule('network_klout_score_low', ts('Please enter a valid From Klout score.'), 'numeric');
+    $form->addRule('network_klout_score_high', ts('Please enter a valid To Klout score'), 'numeric');
 
     $networks = CRM_Attentively_BAO_Attentively::getNetworkList();
     $form->add(
