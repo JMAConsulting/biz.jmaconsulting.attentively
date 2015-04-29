@@ -32,12 +32,12 @@
 </tr>
 <tr>
   <td>
-    <label>{$form.klout_score_low.label}</label> <br />
-    {$form.klout_score_low.html}
+    <label>{$form.network_klout_score_low.label}</label> <br />
+    {$form.network_klout_score_low.html}
   </td>
   <td>
-    {$form.klout_score_high.label}<br />
-    {$form.klout_score_high.html}
+    {$form.network_klout_score_high.label}<br />
+    {$form.network_klout_score_high.html}
    </td>
    <td>
       <table class="form-layout-compressed">

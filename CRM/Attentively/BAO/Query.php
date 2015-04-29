@@ -60,7 +60,7 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
    */
   function select(&$query) {
     $this->_params = $query->_params;
-    if(  CRM_Contact_BAO_Query::componentPresent($query->_returnProperties, 'network_')) {
+    if (CRM_Contact_BAO_Query::componentPresent($query->_returnProperties, 'network_')) {
       $fields = $this->getFields();
       foreach ($fields as $fldName => $params) {
         if (CRM_Utils_Array::value($fldName, $query->_returnProperties)) {
@@ -114,6 +114,13 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
     case 'network_toggle':
     case 'network_operator': // handled above
       return;
+      
+    case 'network_klout_score_low':      
+    case 'network_klout_score_high':
+      $query->numberRangeBuilder($values,
+        'civicrm_attentively_member', 'network_klout_score', 'klout_score', ts('Klout Score')
+      );      
+      break;
 
     default:
         
@@ -153,21 +160,19 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
 
   static function defaultReturnProperties() {
     $properties = array(
-                        'contact_type' => 1,
-                        'contact_sub_type' => 1,
-                        'sort_name' => 1,
-                        'display_name' => 1,
-                        'network_name' => 1,
-                        'network_url' => 1,
-                        );
+      'contact_type' => 1,
+      'contact_sub_type' => 1,
+      'sort_name' => 1,
+      'display_name' => 1,
+      'network_name' => 1,
+      'network_url' => 1,
+    );
     return $properties;
   }
 
   static function buildSearchForm(&$form) {
-
-
-    $form->addElement('text', 'klout_score_low', ts('From'));
-    $form->addElement('text', 'klout_score_high', ts('To'));
+    $form->addElement('text', 'network_klout_score_low', ts('From'));
+    $form->addElement('text', 'network_klout_score_high', ts('To'));
 
     $networks = CRM_Attentively_BAO_Attentively::getNetworkList();
     $form->add('select',
