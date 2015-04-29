@@ -80,7 +80,7 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
     list($name, $op, $value, $grouping, $wildcard) = $values;
     switch ($name) {
     case 'network_options':
-      $this->networkOptions($values);
+      $this->networkOptions($values, $query);
       return;
 
     case 'network_toggle':
@@ -95,7 +95,6 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
       break;
 
     default:
-        
       if (!isset($fields[$name])) {
         CRM_Core_Session::setStatus(ts(
           'We did not recognize the search field: %1.',
@@ -183,7 +182,7 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
     }
   }
 
-  public function networkOptions($values) {
+  public function networkOptions($values, $query) {
     list($name, $op, $value, $grouping, $wildcard) = $values;
 
     if (empty($value) || !is_array($value)) {
@@ -191,44 +190,40 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
     }
 
     // get the operator and toggle values
-    $opValues = $this->getWhereValues('network_operator', $grouping);
+    $opValues = $this->getWhereValues('network_operator', $query);
     $operator = 'OR';
     if ($opValues &&
-        strtolower($opValues[2] == 'AND')
-        ) {
+      strtolower($opValues == 'AND')
+    ) {
       $operator = 'AND';
     }
 
-    $toggleValues = $this->getWhereValues('network_toggle', $grouping);
+    $toggleValues = $this->getWhereValues('network_toggle', $query);
     $compareOP = '!=';
     if ($toggleValues &&
-        $toggleValues[2] == 2
-        ) {
+      $toggleValues == 2
+    ) {
       $compareOP = '=';
     }
-
-    $clauses = array();
-    $qill = array();
+    $clauses = $qill = array();
+    $networks = CRM_Attentively_BAO_Attentively::getNetworkList();
     foreach ($value as $dontCare => $pOption) {
       $clauses[] = " ( civicrm_attentively_member_network.name $compareOP '{$pOption}' ) ";
       $field = CRM_Utils_Array::value($pOption, $this->getFields());
-      $title = $field ? $field['title'] : $pOption;
+      $title = CRM_Utils_Array::value($pOption, $networks, $pOption);
       $qill[] = " Social Media $compareOP $title ";
     }
-
-    $this->_where[$grouping][] = '( ' . implode($operator, $clauses) . ' )';
-    $this->_qill[$grouping][] = implode($operator, $qill);
+    $query->_where[$grouping][] = '( ' . implode($operator, $clauses) . ' )';
+    $query->_qill[$grouping][] = implode($operator, $qill);
   }
 
-  public function getWhereValues($name, $grouping) {
-    $result = NULL;
-    foreach ($this->_params as $values) {
-      if ($values[0] == $name && $values[3] == $grouping) {
-        return $values;
+  public function getWhereValues($name, $query) {
+    foreach ($query->_params as $values) {
+      if ($values[0] == $name) {
+        return $values[2];
       }
     }
-
-    return $result;
+    return NULL;
   }
 }
 
