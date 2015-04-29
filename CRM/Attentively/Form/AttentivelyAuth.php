@@ -15,7 +15,7 @@ class CRM_Attentively_Form_AttentivelyAuth extends CRM_Core_Form {
     $defaults = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, NULL, 'name', FALSE);
     $buttonText = 'Authorize and Connect Attentive.ly';
     $extraParams = array();
-    if (!empty($defaults['access_token'])) {
+    if (!empty($defaults['access_token']) && $defaults['access_token'] != 'none') {
       $buttonText = 'Reconnect to Attentive.ly';
       $defaults['accept'] = TRUE;
       $extraParams = array('disabled' => 'disabled');      

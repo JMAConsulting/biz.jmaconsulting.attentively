@@ -45,7 +45,7 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
   static $_networkFields = array();
 
 
-  function &getFields() {
+  public function &getFields() {
     if (!self::$_networkFields) {
       self::$_networkFields = array_merge(self::$_networkFields, CRM_Attentively_DAO_AttentivelyMemberNetwork::export());
     }
@@ -58,37 +58,9 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
    * @return void
    * @access public
    */
-  function select(&$query) {
-    $this->_params = $query->_params;
-    if(  CRM_Contact_BAO_Query::componentPresent($query->_returnProperties, 'network_')) {
-      $fields = $this->getFields();
-      foreach ($fields as $fldName => $params) {
-        if (CRM_Utils_Array::value($fldName, $query->_returnProperties)) {
-          $query->_select[$fldName]  = "{$params['where']} as $fldName";
-          $query->_element[$fldName] = 1;
-          list($tableName, $dnc) = explode('.', $params['where'], 2);
-          $query->_tables[$tableName]  = $query->_whereTables[$tableName] = 1;
-        }
-      }
+  public function select(&$query) { }
 
-      if (CRM_Utils_Array::value('network_name', $query->_returnProperties)) {
-        $query->_select['network_name'] = "civicrm_attentively_member_network.name as network_name";
-        $query->_element['network_name'] = 1;
-      }
-
-      if (CRM_Utils_Array::value('network_klout', $query->_returnProperties)) {
-        $query->_select['network_klout'] = "civicrm_attentively_member.klout_score as network_klout";
-        $query->_element['network_klout'] = 1;
-      }
-
-      if (CRM_Utils_Array::value('network_url', $query->_returnProperties)) {
-        $query->_select['network_url'] = "civicrm_attentively_member_network.url as network_url";
-        $query->_element['network_url'] = 1;
-      }
-    }
-  }
-
-  function where(&$query) {
+  public function where(&$query) {
     $grouping = NULL;
     foreach (array_keys($query->_params) as $id) {
       if (!CRM_Utils_Array::value(0, $query->_params[$id])) {
@@ -103,32 +75,38 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
     }
   }
 
-  function whereClauseSingle(&$values, &$query) {
+  public function whereClauseSingle(&$values, &$query) {
     $fields = $this->getFields();
     list($name, $op, $value, $grouping, $wildcard) = $values;
     switch ($name) {
     case 'network_options':
-      $this->networkOptions($values);
-      return;
+      $this->networkOptions($values, $query);
+      break;
 
     case 'network_toggle':
     case 'network_operator': // handled above
-      return;
+      break;
+      
+    case 'network_klout_score_low':      
+    case 'network_klout_score_high':
+      $query->numberRangeBuilder($values,
+        'civicrm_attentively_member', 'network_klout_score', 'klout_score', ts('Klout Score')
+      );      
+      break;
 
     default:
-        
       if (!isset($fields[$name])) {
         CRM_Core_Session::setStatus(ts(
           'We did not recognize the search field: %1.',
            array(1 => $name)
            )
         );
-        return;
+        break;
       }
     }
   }
 
-  function from($name, $mode, $side) {
+  public function from($name, $mode, $side) {
     $from = NULL;
     switch ($name) {
     case 'civicrm_attentively_member_network':
@@ -141,65 +119,48 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
     return $from;
   }
 
-  /**
-   * getter for the qill object
-   *
-   * @return string
-   * @access public
-   */
-  function qill() {
-    return (isset($this->_qill)) ? $this->_qill : "";
-  }
-
-  static function defaultReturnProperties() {
-    $properties = array(
-                        'contact_type' => 1,
-                        'contact_sub_type' => 1,
-                        'sort_name' => 1,
-                        'display_name' => 1,
-                        'network_name' => 1,
-                        'network_url' => 1,
-                        );
-    return $properties;
-  }
-
-  static function buildSearchForm(&$form) {
-
-
-    $form->addElement('text', 'klout_score_low', ts('From'));
-    $form->addElement('text', 'klout_score_high', ts('To'));
+  public function buildSearchForm(&$form) {
+    $form->addElement('text', 'network_klout_score_low', ts('From'));
+    $form->addElement('text', 'network_klout_score_high', ts('To'));
+    $form->addRule('network_klout_score_low', ts('Please enter a valid From Klout score.'), 'numeric');
+    $form->addRule('network_klout_score_high', ts('Please enter a valid To Klout score'), 'numeric');
 
     $networks = CRM_Attentively_BAO_Attentively::getNetworkList();
-    $form->add('select',
-               'network_options',
-               ts('Social Media Accounts'),
-               $networks,
-               FALSE,
-               array(
-                     'id' => 'network_options',
-                     'multiple' => 'multiple',
-                     'title' => ts('- select -'),
-                     )
-               );
+    $form->add(
+      'select',
+      'network_options',
+      ts('Social Media Accounts'),
+      $networks,
+      FALSE,
+      array(
+        'class' => ' crm-select2 ',
+        'multiple' => 'multiple',
+        'placeHolder' => ts('- Select Network -'),
+      )
+    );
 
-    $form->addElement('select',
-                      'network_operator',
-                      ts('Operator'),
-                      array('OR' => ts('OR'),
-                            'AND' => ts('AND'),
-                            )
-                      );
+    $form->add(
+      'select',
+      'network_operator',
+      ts('Operator'),
+      array(
+        'OR' => ts('OR'),
+        'AND' => ts('AND'),
+      ),
+      FALSE,
+      array('class' => ' crm-select2 two')
+    );
 
     $options = array(
-                     1 => ts('Exclude'),
-                     2 => ts('Include by Social Media Account(s)'),
-                     );
+      1 => ts('Exclude'),
+      2 => ts('Include by Social Media Account(s)'),
+    );
     $form->addRadio('network_toggle', ts('Social Media Options'), $options);
   }
 
-  function searchAction(&$row, $id) {}
+  public function searchAction(&$row, $id) {}
 
-  function setTableDependency(&$tables) {
+  public function setTableDependency(&$tables) {
     $tables = array_merge(array('civicrm_attentively_member_network' => 1, 'civicrm_attentively_member' => 1), $tables);
   }
 
@@ -215,6 +176,7 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
     if ($type  == 'social') {
       $form->add('hidden', 'hidden_social', 1);
       self::buildSearchForm($form);
+      $form->setDefaults(array('network_toggle' => 2));
     }
   }
 
@@ -224,7 +186,7 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
     }
   }
 
-  function networkOptions($values) {
+  public function networkOptions($values, $query) {
     list($name, $op, $value, $grouping, $wildcard) = $values;
 
     if (empty($value) || !is_array($value)) {
@@ -232,44 +194,40 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
     }
 
     // get the operator and toggle values
-    $opValues = $this->getWhereValues('network_operator', $grouping);
+    $opValues = $this->getWhereValues('network_operator', $query);
     $operator = 'OR';
     if ($opValues &&
-        strtolower($opValues[2] == 'AND')
-        ) {
+      strtolower($opValues == 'AND')
+    ) {
       $operator = 'AND';
     }
 
-    $toggleValues = $this->getWhereValues('network_toggle', $grouping);
+    $toggleValues = $this->getWhereValues('network_toggle', $query);
     $compareOP = '!=';
     if ($toggleValues &&
-        $toggleValues[2] == 2
-        ) {
+      $toggleValues == 2
+    ) {
       $compareOP = '=';
     }
-
-    $clauses = array();
-    $qill = array();
+    $clauses = $qill = array();
+    $networks = CRM_Attentively_BAO_Attentively::getNetworkList();
     foreach ($value as $dontCare => $pOption) {
       $clauses[] = " ( civicrm_attentively_member_network.name $compareOP '{$pOption}' ) ";
       $field = CRM_Utils_Array::value($pOption, $this->getFields());
-      $title = $field ? $field['title'] : $pOption;
+      $title = CRM_Utils_Array::value($pOption, $networks, $pOption);
       $qill[] = " Social Media $compareOP $title ";
     }
-
-    $this->_where[$grouping][] = '( ' . implode($operator, $clauses) . ' )';
-    $this->_qill[$grouping][] = implode($operator, $qill);
+    $query->_where[$grouping][] = '( ' . implode($operator, $clauses) . ' )';
+    $query->_qill[$grouping][] = implode($operator, $qill);
   }
 
-  function &getWhereValues($name, $grouping) {
-    $result = NULL;
-    foreach ($this->_params as $values) {
-      if ($values[0] == $name && $values[3] == $grouping) {
-        return $values;
+  public function getWhereValues($name, $query) {
+    foreach ($query->_params as $values) {
+      if ($values[0] == $name) {
+        return $values[2];
       }
     }
-
-    return $result;
+    return NULL;
   }
 }
 

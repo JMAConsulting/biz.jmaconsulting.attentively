@@ -270,7 +270,7 @@ class CRM_Attentively_BAO_Attentively {
     $dao = CRM_Core_DAO::executeQuery($sql);
     while ($dao->fetch()) {
       if ($dao->name == 'gravatar') {
-        $email = self::getAttentivelyContact($cid, 'email_address');
+        $email = self::getAttentivelyFromContact($cid, array('email_address'));
         $atts = array(
           'position' => 'static',
           'border-top-left-radius' => '5px',
@@ -346,6 +346,7 @@ class CRM_Attentively_BAO_Attentively {
   static public function getNetworkList() {
     $sql = "SELECT name FROM civicrm_attentively_member_network GROUP BY name";
     $dao = CRM_Core_DAO::executeQuery($sql);
+    $networks = array();
     while ($dao->fetch()) {
       $networks[$dao->name] = ucfirst($dao->name);
     }
