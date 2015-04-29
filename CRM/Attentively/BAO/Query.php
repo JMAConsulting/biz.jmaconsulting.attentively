@@ -173,6 +173,7 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
     if ($type  == 'social') {
       $form->add('hidden', 'hidden_social', 1);
       self::buildSearchForm($form);
+      $form->setDefaults(array('network_toggle' => 2));
     }
   }
 
