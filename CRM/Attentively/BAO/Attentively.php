@@ -344,7 +344,7 @@ class CRM_Attentively_BAO_Attentively {
   }
   
   static public function getNetworkList() {
-    $sql = "SELECT name FROM civicrm_attentively_member_network GROUP BY name";
+    $sql = "SELECT name FROM civicrm_attentively_member_network WHERE name NOT IN ('klout', 'gravatar') GROUP BY name";
     $dao = CRM_Core_DAO::executeQuery($sql);
     $networks = array();
     while ($dao->fetch()) {

@@ -110,7 +110,7 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
     $from = NULL;
     switch ($name) {
     case 'civicrm_attentively_member_network':
-      $from = " $side JOIN civicrm_attentively_member_network ON civicrm_attentively_member_network.contact_id = contact_a.id";
+      $from = " $side JOIN civicrm_attentively_member_network ON civicrm_attentively_member_network.contact_id = contact_a.id AND civicrm_attentively_member_network.name NOT IN ('klout', 'gravatar')";
       break;
     case 'civicrm_attentively_member':
       $from = " $side JOIN civicrm_attentively_member ON civicrm_attentively_member.contact_id = contact_a.id";
