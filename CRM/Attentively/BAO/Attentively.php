@@ -139,11 +139,43 @@ class CRM_Attentively_BAO_Attentively {
     if ($result['success'] && $result['deferred_status'] == 'complete') {
       // Store members
       foreach ($result['members'] as $key => $value) {
+        $attContact = array();
+        // Add members into CiviCRM if contact_id not returned.
+        if (empty($value->contact_id)) {
+          $attContact['first_name'] = $value->first_name;
+          $attContact['last_name'] = $value->last_name;
+          $attContact['email'] = $value->email_address;
+          $attContact['contact_type'] = 'Individual';
+          $attContact['version'] = 3;
+          $dedupeParams = CRM_Dedupe_Finder::formatParams($attContact, 'Individual');
+          $dedupeParams['check_permission'] = FALSE;
+          $dupes = CRM_Dedupe_Finder::dupesByParams($dedupeParams, 'Individual');
+          if (count($dupes) == 1) {
+            $attContact['contact_id'] = $dupes[0];
+          } 
+          elseif (count($dupes) > 1) {
+            $dao = new CRM_Core_DAO_UFMatch();
+            $dao->uf_name = $attContact['email'];
+            if ($dao->find(TRUE)) {
+              $attContact['contact_id'] = $dao->contact_id;
+            }
+            else { 
+              $attContact['contact_id'] = $dupes[0];
+            }
+          }
+          $contact = civicrm_api( 'Contact', 'create', $attContact );
+          if (CRM_Utils_Array::value('id', $contact)) {
+            $value->contact_id = $contact['id'];
+          }
+        }
+        if (empty($value->klout_score)) {
+          $value->klout_score = 0;
+        }
         $sql = "INSERT INTO civicrm_attentively_member (`member_id`, `contact_id`, `email_address`, `first_name`, `last_name`, `age`, `city`, `state`, `zip_code`, `metro_area`, `klout_score`) 
           VALUES ( '{$value->member_id}', '{$value->contact_id}', '{$value->email_address}', %1, %2, '{$value->age}', %3, %4, 
-          '{$value->zip_code}', %5, '{$value->klout_score}' ) 
+          '{$value->zipcode}', %5, '{$value->klout_score}' ) 
           ON DUPLICATE KEY UPDATE member_id = '{$value->member_id}', email_address = '{$value->email_address}', first_name = %1, last_name = %2,
-          age = '{$value->age}', city = %3, state = %4, zip_code = '{$value->zip_code}', metro_area = %5, klout_score = '{$value->klout_score}'";
+          age = '{$value->age}', city = %3, state = %4, zip_code = '{$value->zipcode}', metro_area = %5, klout_score = '{$value->klout_score}'";
         $params = array( 
           1 => array($value->first_name, 'String'),
           2 => array($value->last_name, 'String'),
@@ -344,7 +376,7 @@ class CRM_Attentively_BAO_Attentively {
   }
   
   static public function getNetworkList() {
-    $sql = "SELECT name FROM civicrm_attentively_member_network GROUP BY name";
+    $sql = "SELECT name FROM civicrm_attentively_member_network WHERE name NOT IN ('klout', 'gravatar') GROUP BY name";
     $dao = CRM_Core_DAO::executeQuery($sql);
     $networks = array();
     while ($dao->fetch()) {
