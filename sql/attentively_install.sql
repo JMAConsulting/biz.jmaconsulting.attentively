@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS `civicrm_attentively_member` (
   `email_address` varchar(255) DEFAULT NULL,
   `first_name` varchar(64) DEFAULT NULL,
   `last_name` varchar(64) DEFAULT NULL,
-  `age` int(10) DEFAULT NULL,
+  `age` varchar(10) DEFAULT NULL,
   `city` varchar(255) DEFAULT NULL,
   `state` varchar(255) DEFAULT NULL,
   `zip_code` varchar(12) DEFAULT NULL,
