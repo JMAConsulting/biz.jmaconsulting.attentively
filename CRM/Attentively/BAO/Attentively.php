@@ -247,6 +247,9 @@ class CRM_Attentively_BAO_Attentively {
     foreach ($terms as $term) {
       $allTerms .= $term['term'] . ',';
     }
+    if (empty($allTerms)) {
+      return array('error' => ts('You must specify watched terms before you can pull posts. Please specify them at Administer >> System Settings >> Option Groups >> Attentive.ly Watched Terms'));
+    }
     $period = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, " AND v.name = 'post_period_to_retrieve' ", 'name', FALSE);
     $post = '&period=' . $period['post_period_to_retrieve'] . '&term=' . $allTerms;
     $result = self::getAttentivelyResponse('posts', $post);
@@ -279,7 +282,7 @@ class CRM_Attentively_BAO_Attentively {
     $errors = array();
     $terms = CRM_Core_OptionGroup::values('attentively_terms', FALSE, FALSE, FALSE, NULL, 'label', FALSE);
     if (empty($terms)) {
-      return 0;
+      return array('error' => ts('You have not specified any watched terms. Please specify them at Administer >> System Settings >> Option Groups >> Attentive.ly Watched Terms'));
     }
     $terms = '&terms=' . implode(',' , $terms);
     $result = self::getAttentivelyResponse('watched_terms_add', $terms); 
@@ -386,7 +389,7 @@ class CRM_Attentively_BAO_Attentively {
   }
 
 
-  function getAttentivelyResponse($url, $postPart, $isMember = FALSE) {
+  static public function getAttentivelyResponse($url, $postPart, $isMember = FALSE) {
     $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, " AND v.name = 'access_token' ", 'name', FALSE);
     // FIXME: should refactor for all POST fields
     if ($isMember) {
