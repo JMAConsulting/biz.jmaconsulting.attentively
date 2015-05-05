@@ -51,11 +51,9 @@ class CRM_Attentively_BAO_AttentivelyWatchedTerms extends CRM_Attentively_DAO_At
     while ($dao->fetch()) {
       $terms[$dao->id]['term'] = $dao->term;
       $terms[$dao->id]['nickname'] = $dao->nickname;
-      
-      CRM_Core_DAO::storeValues($dao, $terms);
 
-      return $dao;
     }
+    return $terms;
   } 
 
 }
