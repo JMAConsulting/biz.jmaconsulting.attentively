@@ -219,6 +219,7 @@ class CRM_Attentively_BAO_Attentively {
         $dao = new CRM_Attentively_DAO_AttentivelyWatchedTerms();
         $dao->term = $term->term;
         $dao->nickname = $term->nickname;
+        $dao->find(TRUE);
         $dao->save();
         $dao->free();
       }
@@ -244,15 +245,16 @@ class CRM_Attentively_BAO_Attentively {
 
   static public function pullPosts() {
     $terms = $errors = array();
+    $allTerms = $allTermsNick = '';
     CRM_Attentively_BAO_AttentivelyWatchedTerms::getWatchedTerms($terms);
     $watchedTerms = CRM_Core_OptionGroup::values('attentively_terms', FALSE, FALSE, FALSE, NULL, 'label', FALSE);
-    foreach ($watchedTerms as $ind) {
-      $terms[$ind]['term'] = $ind;
-      $terms[$ind]['nickname'] = $ind;
-    }
     foreach ($terms as $term) {
       $allTerms .= $term['term'] . ',';
       $allTermsNick .= $term['nickname'] . ',';
+    }
+    foreach ($watchedTerms as $ind) {
+      $terms[$ind]['term'] = $ind;
+      $terms[$ind]['nickname'] = $ind;
     }
     if (empty($allTerms)) {
       return array('error' => ts('You must specify watched terms before you can pull posts. Please specify them at Administer >> System Settings >> Option Groups >> Attentive.ly Watched Terms'));
@@ -264,12 +266,40 @@ class CRM_Attentively_BAO_Attentively {
     if ($result['success']) {
       // Store posts
       foreach ($result['posts'] as $key => $value) {
-        $check = CRM_Core_DAO::singleValueQuery("SELECT 1 FROM civicrm_attentively_posts WHERE post_timestamp = {$value->timestamp}");
+        $check = CRM_Core_DAO::singleValueQuery("SELECT 1 FROM civicrm_attentively_posts WHERE post_timestamp = {$value->post_timestamp}");
         if ($check)
           continue;
+        // Add contacts with no contact ID
+        if (empty($value->contact_id)) {
+          $attContact['first_name'] = $value->first_name;
+          $attContact['last_name'] = $value->last_name;
+          $attContact['email'] = $value->email_address;
+          $attContact['contact_type'] = 'Individual';
+          $attContact['version'] = 3;
+          $dedupeParams = CRM_Dedupe_Finder::formatParams($attContact, 'Individual');
+          $dedupeParams['check_permission'] = FALSE;
+          $dupes = CRM_Dedupe_Finder::dupesByParams($dedupeParams, 'Individual');
+          if (count($dupes) == 1) {
+            $attContact['contact_id'] = $dupes[0];
+          } 
+          elseif (count($dupes) > 1) {
+            $dao = new CRM_Core_DAO_UFMatch();
+            $dao->uf_name = $attContact['email'];
+            if ($dao->find(TRUE)) {
+              $attContact['contact_id'] = $dao->contact_id;
+            }
+            else { 
+              $attContact['contact_id'] = $dupes[0];
+            }
+          }
+          $contact = civicrm_api( 'Contact', 'create', $attContact );
+          if (CRM_Utils_Array::value('id', $contact)) {
+            $value->contact_id = $contact['id'];
+          }
+        }
         // FIXME: This needs to have its own DAO
         $sql = "INSERT INTO civicrm_attentively_posts (`member_id`, `contact_id`, `network`, `post_content`, `post_date`, `post_timestamp`,  `post_url`) 
-          VALUES ( '{$value->member_id}', '{$value->contact_id}', '{$value->network}', %1, %2, '{post_timestamp}', %3)";
+          VALUES ( '{$value->member_id}', '{$value->contact_id}', '{$value->network}', %1, %2, '{$value->post_timestamp}', %3)";
         $params = array( 
           1 => array($value->post_content, 'String'),
           2 => array(date('Y-m-d H:i:s', strtotime($value->post_date)), 'String'),
