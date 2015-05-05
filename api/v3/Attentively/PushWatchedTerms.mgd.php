@@ -15,7 +15,7 @@ return array (
       'description' => 'Call Attentively.PushWatchedTerms API',
       'run_frequency' => 'Daily',
       'api_entity' => 'Attentively',
-      'api_action' => 'PushWatchedTerms',
+      'api_action' => 'Pushwatchedterms',
       'parameters' => '',
     ),
   ),
