@@ -214,12 +214,13 @@ class CRM_Attentively_BAO_Attentively {
   static public function pullWatchedTerms() {
     $errors = array();
     $result = self::getAttentivelyResponse('watched_terms', NULL);
-    $dao = new CRM_Attentively_DAO_AttentivelyWatchedTerms();
     if ($result['success'] && !empty($result['watched_terms'])) {
       foreach ($result['watched_terms'] as $term) {
+        $dao = new CRM_Attentively_DAO_AttentivelyWatchedTerms();
         $dao->term = $term->term;
         $dao->nickname = $term->nickname;
         $dao->save();
+        $dao->free();
       }
       return count($result['watched_terms']);
     }
@@ -244,14 +245,20 @@ class CRM_Attentively_BAO_Attentively {
   static public function pullPosts() {
     $terms = $errors = array();
     CRM_Attentively_BAO_AttentivelyWatchedTerms::getWatchedTerms($terms);
+    $watchedTerms = CRM_Core_OptionGroup::values('attentively_terms', FALSE, FALSE, FALSE, NULL, 'label', FALSE);
+    foreach ($watchedTerms as $ind) {
+      $terms[$ind]['term'] = $ind;
+      $terms[$ind]['nickname'] = $ind;
+    }
     foreach ($terms as $term) {
       $allTerms .= $term['term'] . ',';
+      $allTermsNick .= $term['nickname'] . ',';
     }
     if (empty($allTerms)) {
       return array('error' => ts('You must specify watched terms before you can pull posts. Please specify them at Administer >> System Settings >> Option Groups >> Attentive.ly Watched Terms'));
     }
     $period = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, " AND v.name = 'post_period_to_retrieve' ", 'name', FALSE);
-    $post = '&period=' . $period['post_period_to_retrieve'] . '&term=' . $allTerms;
+    $post = '&period=' . $period['post_period_to_retrieve'] . '&term=' . $allTerms . '&term_nickname=' . $allTermsNick;
     $result = self::getAttentivelyResponse('posts', $post);
  
     if ($result['success']) {
