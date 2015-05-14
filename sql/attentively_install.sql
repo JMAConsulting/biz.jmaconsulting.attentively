@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS `civicrm_attentively_member_network` (
   `name` varchar(64) DEFAULT NULL,
   `url` varchar(255) DEFAULT NULL,
   `photo` varchar(255) DEFAULT NULL,
+  `icon` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 

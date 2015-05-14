@@ -135,7 +135,7 @@ class CRM_Attentively_BAO_Attentively {
       $errors[] = $result['error'];
     }
     curl_close($ch);
-    
+
     if ($result['success'] && $result['deferred_status'] == 'complete') {
       // Store members
       foreach ($result['members'] as $key => $value) {
@@ -190,6 +190,7 @@ class CRM_Attentively_BAO_Attentively {
           $network[$key][$k]['name'] = $networks->name;
           $network[$key][$k]['url'] = $networks->url;
           $network[$key][$k]['photo'] = $networks->photo;
+          $network[$key][$k]['icon'] = $networks->icon;
         }
       }
       foreach ($network as $key => $v) {
@@ -198,8 +199,8 @@ class CRM_Attentively_BAO_Attentively {
           $flag = CRM_Core_DAO::singleValueQuery($check);
           if ($flag) 
             continue;
-          $query = "INSERT INTO civicrm_attentively_member_network (`contact_id`, `name`, `url`, `photo`)
-          VALUES ( '{$value['contact_id']}', '{$value['name']}', '{$value['url']}', '{$value['photo']}' )";
+          $query = "INSERT INTO civicrm_attentively_member_network (`contact_id`, `name`, `url`, `photo`, `icon`)
+          VALUES ( '{$value['contact_id']}', '{$value['name']}', '{$value['url']}', '{$value['photo']}', '{$value['icon']}' )";
           $dao = CRM_Core_DAO::executeQuery($query);
         }
       }
@@ -353,6 +354,7 @@ class CRM_Attentively_BAO_Attentively {
       elseif ($dao->name != 'klout') {
         $network[$dao->name]['url'] = $dao->url;
         $network[$dao->name]['image'] = '<img class="network-image" src="' .$config->extensionsURL. '/biz.jmaconsulting.attentively/images/' .$dao->name. '.png" style="width:80px !important; height:80px !important;"/>';
+        $network[$dao->name]['image'] = '<img class="network-image" src="' .$dao->icon. '" />';
       }
       if ($dao->photo != '' && $dao->name != 'gravatar') {
         $network['gravatar']['image'] = '<img class="photo" src=' . $dao->photo . ' />';
