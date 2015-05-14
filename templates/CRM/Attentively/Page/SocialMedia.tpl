@@ -1,6 +1,6 @@
 <style>
 
-.user-avatar, .network-container {ldelim}
+.user-avatar {ldelim}
     background-color: #fff;
     border: 1px solid #a8a8a8;
     border-radius: 50%;
@@ -85,7 +85,7 @@
      <tr>
   {foreach from=$networkData item=url key=name}
     {if $name neq 'gravatar'}
-      <td style="padding-top:14px; border:none;"><div class="network-container"><a href="{$url.url}">{$url.image}</a></div></td>
+      <td style="padding-top:14px; padding-bottom:14px; border:none;"><div><a href="{$url.url}">{$url.image}  {$name|upper}</a></div></td>
     {/if}
   {/foreach}
      </tr>

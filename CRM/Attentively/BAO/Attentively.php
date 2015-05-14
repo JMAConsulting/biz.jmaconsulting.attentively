@@ -135,7 +135,7 @@ class CRM_Attentively_BAO_Attentively {
       $errors[] = $result['error'];
     }
     curl_close($ch);
-    
+
     if ($result['success'] && $result['deferred_status'] == 'complete') {
       // Store members
       foreach ($result['members'] as $key => $value) {
@@ -190,6 +190,7 @@ class CRM_Attentively_BAO_Attentively {
           $network[$key][$k]['name'] = $networks->name;
           $network[$key][$k]['url'] = $networks->url;
           $network[$key][$k]['photo'] = $networks->photo;
+          $network[$key][$k]['icon'] = $networks->icon;
         }
       }
       foreach ($network as $key => $v) {
@@ -198,8 +199,8 @@ class CRM_Attentively_BAO_Attentively {
           $flag = CRM_Core_DAO::singleValueQuery($check);
           if ($flag) 
             continue;
-          $query = "INSERT INTO civicrm_attentively_member_network (`contact_id`, `name`, `url`, `photo`)
-          VALUES ( '{$value['contact_id']}', '{$value['name']}', '{$value['url']}', '{$value['photo']}' )";
+          $query = "INSERT INTO civicrm_attentively_member_network (`contact_id`, `name`, `url`, `photo`, `icon`)
+          VALUES ( '{$value['contact_id']}', '{$value['name']}', '{$value['url']}', '{$value['photo']}', '{$value['icon']}' )";
           $dao = CRM_Core_DAO::executeQuery($query);
         }
       }
@@ -214,12 +215,14 @@ class CRM_Attentively_BAO_Attentively {
   static public function pullWatchedTerms() {
     $errors = array();
     $result = self::getAttentivelyResponse('watched_terms', NULL);
-    $dao = new CRM_Attentively_DAO_AttentivelyWatchedTerms();
     if ($result['success'] && !empty($result['watched_terms'])) {
       foreach ($result['watched_terms'] as $term) {
+        $dao = new CRM_Attentively_DAO_AttentivelyWatchedTerms();
         $dao->term = $term->term;
         $dao->nickname = $term->nickname;
+        $dao->find(TRUE);
         $dao->save();
+        $dao->free();
       }
       return count($result['watched_terms']);
     }
@@ -243,26 +246,61 @@ class CRM_Attentively_BAO_Attentively {
 
   static public function pullPosts() {
     $terms = $errors = array();
+    $allTerms = $allTermsNick = '';
     CRM_Attentively_BAO_AttentivelyWatchedTerms::getWatchedTerms($terms);
+    $watchedTerms = CRM_Core_OptionGroup::values('attentively_terms', FALSE, FALSE, FALSE, NULL, 'label', FALSE);
     foreach ($terms as $term) {
       $allTerms .= $term['term'] . ',';
+      $allTermsNick .= $term['nickname'] . ',';
+    }
+    foreach ($watchedTerms as $ind) {
+      $terms[$ind]['term'] = $ind;
+      $terms[$ind]['nickname'] = $ind;
     }
     if (empty($allTerms)) {
       return array('error' => ts('You must specify watched terms before you can pull posts. Please specify them at Administer >> System Settings >> Option Groups >> Attentive.ly Watched Terms'));
     }
     $period = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, " AND v.name = 'post_period_to_retrieve' ", 'name', FALSE);
-    $post = '&period=' . $period['post_period_to_retrieve'] . '&term=' . $allTerms;
+    $post = '&period=' . $period['post_period_to_retrieve'] . '&term=' . $allTerms . '&term_nickname=' . $allTermsNick;
     $result = self::getAttentivelyResponse('posts', $post);
  
     if ($result['success']) {
       // Store posts
       foreach ($result['posts'] as $key => $value) {
-        $check = CRM_Core_DAO::singleValueQuery("SELECT 1 FROM civicrm_attentively_posts WHERE post_timestamp = {$value->timestamp}");
+        $check = CRM_Core_DAO::singleValueQuery("SELECT 1 FROM civicrm_attentively_posts WHERE post_timestamp = {$value->post_timestamp}");
         if ($check)
           continue;
+        // Add contacts with no contact ID
+        if (empty($value->contact_id)) {
+          $attContact['first_name'] = $value->first_name;
+          $attContact['last_name'] = $value->last_name;
+          $attContact['email'] = $value->email_address;
+          $attContact['contact_type'] = 'Individual';
+          $attContact['version'] = 3;
+          $dedupeParams = CRM_Dedupe_Finder::formatParams($attContact, 'Individual');
+          $dedupeParams['check_permission'] = FALSE;
+          $dupes = CRM_Dedupe_Finder::dupesByParams($dedupeParams, 'Individual');
+          if (count($dupes) == 1) {
+            $attContact['contact_id'] = $dupes[0];
+          } 
+          elseif (count($dupes) > 1) {
+            $dao = new CRM_Core_DAO_UFMatch();
+            $dao->uf_name = $attContact['email'];
+            if ($dao->find(TRUE)) {
+              $attContact['contact_id'] = $dao->contact_id;
+            }
+            else { 
+              $attContact['contact_id'] = $dupes[0];
+            }
+          }
+          $contact = civicrm_api( 'Contact', 'create', $attContact );
+          if (CRM_Utils_Array::value('id', $contact)) {
+            $value->contact_id = $contact['id'];
+          }
+        }
         // FIXME: This needs to have its own DAO
         $sql = "INSERT INTO civicrm_attentively_posts (`member_id`, `contact_id`, `network`, `post_content`, `post_date`, `post_timestamp`,  `post_url`) 
-          VALUES ( '{$value->member_id}', '{$value->contact_id}', '{$value->network}', %1, %2, '{post_timestamp}', %3)";
+          VALUES ( '{$value->member_id}', '{$value->contact_id}', '{$value->network}', %1, %2, '{$value->post_timestamp}', %3)";
         $params = array( 
           1 => array($value->post_content, 'String'),
           2 => array(date('Y-m-d H:i:s', strtotime($value->post_date)), 'String'),
@@ -316,6 +354,7 @@ class CRM_Attentively_BAO_Attentively {
       elseif ($dao->name != 'klout') {
         $network[$dao->name]['url'] = $dao->url;
         $network[$dao->name]['image'] = '<img class="network-image" src="' .$config->extensionsURL. '/biz.jmaconsulting.attentively/images/' .$dao->name. '.png" style="width:80px !important; height:80px !important;"/>';
+        $network[$dao->name]['image'] = '<img class="network-image" src="' .$dao->icon. '" />';
       }
       if ($dao->photo != '' && $dao->name != 'gravatar') {
         $network['gravatar']['image'] = '<img class="photo" src=' . $dao->photo . ' />';
