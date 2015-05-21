@@ -34,5 +34,14 @@
       <weight>2</weight>
       <option_group_name>attentively_auth</option_group_name>
     </OptionValue>
+    <OptionValue>
+      <label>Member Batch</label>
+      <value>1000</value>
+      <name>member_batch</name>
+      <is_reserved>1</is_reserved>
+      <weight>3</weight>
+      <is_active>1</is_active>
+      <option_group_name>attentively_auth</option_group_name>
+    </OptionValue>
   </OptionValues>
 </CustomData>

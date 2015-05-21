@@ -1,6 +1,5 @@
 <?php
 
-define('ROWCOUNT', 1000);
 /*
  +--------------------------------------------------------------------+
  | CiviCRM version 4.4                                                |
@@ -69,12 +68,12 @@ class CRM_Attentively_BAO_Attentively {
         AND c.is_deleted <> 1
         GROUP BY c.id";  // used to determine initial count and to retrieve records and insert processed records
     $count = CRM_Core_DAO::singleValueQuery("SELECT COUNT(*) FROM (SELECT COUNT(*) " . $sqlBody . ") as S"); // total members to send
-    $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, " AND v.name = 'access_token' ", 'name', FALSE);
+    $settings = CRM_Core_OptionGroup::values('attentively_auth', TRUE, FALSE, FALSE, " AND v.name IN ('access_token', 'member_batch') ", 'name', FALSE);
     $memberCount = 0; // number of members successfully sent
     $startRow = 0; // next row to send
     $errors = array();
     while ($count > 0) {
-      $sqlBodyLimited = $sqlBody . " LIMIT $startRow, " . ROWCOUNT; // will use to insert processed records on success
+      $sqlBodyLimited = $sqlBody . " LIMIT $startRow, " . $settings['member_batch']; // will use to insert processed records on success
       $sql = "SELECT c.id, c.first_name, c.last_name, e.email, g.title " . $sqlBodyLimited;
       $contacts = CRM_Core_DAO::executeQuery($sql);
       if ($contacts->N == 0) {
