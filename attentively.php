@@ -74,33 +74,7 @@ function attentively_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
  * Generate a list of entities to create/deactivate/delete when this module
  * is installed, disabled, uninstalled.
  */
-function attentively_civicrm_managed(&$entities) {  
-  $entities[] = array(
-    'module' => 'biz.jmaconsulting.attentively',
-    'name' => 'attentively',
-    'entity' => 'CustomGroup',
-    'params' => array(
-      'title' => 'Processed by Attentive.ly?',
-      'name' => 'attentively_processed',
-      'is_active' => 1,
-      'update' => 'never',
-      'version' => 3,
-      'extends' => 'Contact',
-      'api.customField.create' => array(
-        array(
-          'name' => 'attentively_is_processed',
-          'label' => 'Processed',
-          'html_type' => 'Radio',
-          'data_type' => 'Boolean',
-          'is_active' => 1,
-          'is_view' => 1,
-          'update' => 'never',
-          'is_searchable' => 1,
-          'version' => 3,
-        ),
-      ),  
-    ),
-  );
+function attentively_civicrm_managed(&$entities) {
   return _attentively_civix_civicrm_managed($entities);
 }
 
