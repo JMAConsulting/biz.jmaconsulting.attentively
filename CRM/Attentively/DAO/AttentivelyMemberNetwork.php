@@ -150,12 +150,14 @@ class CRM_Attentively_DAO_AttentivelyMemberNetwork extends CRM_Core_DAO
       self::$_fields = array(
         'id' => array(
           'name' => 'id',
+          'title' => ts('Member Network ID'),
           'type' => CRM_Utils_Type::T_INT,
           'required' => true,
           'export' => TRUE,
         ) ,
         'contact_id' => array(
           'name' => 'contact_id',
+          'title' => ts('Contact ID'),
           'type' => CRM_Utils_Type::T_INT,
           'FKClassName' => 'CRM_Contact_DAO_Contact',
           'export' => TRUE,
@@ -163,7 +165,7 @@ class CRM_Attentively_DAO_AttentivelyMemberNetwork extends CRM_Core_DAO
         'name' => array(
           'name' => 'name',
           'type' => CRM_Utils_Type::T_STRING,
-          'title' => ts('Name') ,
+          'title' => ts('Name'),
           'maxlength' => 64,
           'html' => array(
             'type' => 'Text',
@@ -173,7 +175,7 @@ class CRM_Attentively_DAO_AttentivelyMemberNetwork extends CRM_Core_DAO
         'url' => array(
           'name' => 'url',
           'type' => CRM_Utils_Type::T_STRING,
-          'title' => ts('URL') ,
+          'title' => ts('URL'),
           'maxlength' => 255,
           'html' => array(
             'type' => 'Text',
