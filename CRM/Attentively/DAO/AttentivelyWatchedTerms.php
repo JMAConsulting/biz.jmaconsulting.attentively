@@ -151,11 +151,12 @@ class CRM_Attentively_DAO_AttentivelyWatchedTerms extends CRM_Core_DAO
           'type' => CRM_Utils_Type::T_INT,
           'required' => true,
           'export' => TRUE,
+          'title' => ts('Attentively Watched Term ID'),
         ) ,
         'term' => array(
           'name' => 'term',
           'type' => CRM_Utils_Type::T_STRING,
-          'title' => ts('Term') ,
+          'title' => ts('Term'),
           'maxlength' => 255,
           'html' => array(
             'type' => 'Text',
@@ -165,7 +166,7 @@ class CRM_Attentively_DAO_AttentivelyWatchedTerms extends CRM_Core_DAO
         'nickname' => array(
           'name' => 'nickname',
           'type' => CRM_Utils_Type::T_STRING,
-          'title' => ts('Nickname') ,
+          'title' => ts('Nickname'),
           'maxlength' => 255,
           'html' => array(
             'type' => 'Text',
