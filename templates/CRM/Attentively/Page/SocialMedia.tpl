@@ -53,9 +53,9 @@
 </style>
 <div class="attentively-branding">
 {if $memID}
-  <a href="{$attURL}">Manage contact in <img class="att-logo" src="{$config->extensionsURL}/biz.jmaconsulting.attentively/images/Attentively.png"></a>
+  <a href="{$attURL}">Manage contact in <img class="att-logo" src="{$config->extensionsURL}/{$smarty.const.EXT_NAME}/images/Attentively.png"></a>
 {else}
-  <a href="{$attURL}">No social media matches have been made for this contact in <img class="att-logo" src="{$config->extensionsURL}/biz.jmaconsulting.attentively/images/Attentively.png"></a>
+  <a href="{$attURL}">No social media matches have been made for this contact in <img class="att-logo" src="{$config->extensionsURL}/{$smarty.const.EXT_NAME}/images/Attentively.png"></a>
 {/if}
 </div>
 {strip} 
@@ -71,7 +71,7 @@
       <td><div class="user-avatar">
         <a href="{$networkData.gravatar.url}">{$networkData.gravatar.image}</a>
       </div>
-    <div class="klout-label" class="klout-image"><img width="40px" src="{$config->extensionsURL}/biz.jmaconsulting.attentively/images/klout.png"/></div><div class="klout-content">{$klout}</div>
+    <div class="klout-label" class="klout-image"><img width="40px" src="{$config->extensionsURL}/{$smarty.const.EXT_NAME}/images/klout.png"/></div><div class="klout-content">{$klout}</div>
 {else}
     <div id="help">{ts}Klout score is unavailable{/ts}</div>
 {/if}

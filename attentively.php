@@ -1,6 +1,7 @@
 <?php
 
-define('ENV', 1); // Set ENV to 1 for production API (https://api.attentive.ly) or 0 for test API (http://apidev.attentive.ly)
+define('ENV', 1); // Set ENV to 1 for production API (https://api.attentive.ly) or 0 for test API (http://apidev.attentive.ly) 
+define('EXT_NAME',  basename(__DIR__));
 
 
 require_once 'attentively.civix.php';
@@ -42,7 +43,7 @@ function attentively_civicrm_uninstall() {
 function attentively_civicrm_enable() {
   $config = CRM_Core_Config::singleton();
   CRM_Core_Session::singleton()->set('authEnabled', TRUE);
-  CRM_Utils_File::sourceSQLFile(CIVICRM_DSN, $config->extensionsDir.'biz.jmaconsulting.attentively/sql/attentively_enable.sql');
+  CRM_Utils_File::sourceSQLFile(CIVICRM_DSN, $config->extensionsDir . EXT_NAME . '/sql/attentively_enable.sql');
   return _attentively_civix_civicrm_enable();
 }
 
@@ -51,7 +52,7 @@ function attentively_civicrm_enable() {
  */
 function attentively_civicrm_disable() {
   $config = CRM_Core_Config::singleton();
-  CRM_Utils_File::sourceSQLFile(CIVICRM_DSN, $config->extensionsDir.'biz.jmaconsulting.attentively/sql/attentively_disable.sql');
+  CRM_Utils_File::sourceSQLFile(CIVICRM_DSN, $config->extensionsDir . EXT_NAME . '/sql/attentively_disable.sql');
   return _attentively_civix_civicrm_disable();
 }
 
