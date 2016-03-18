@@ -352,7 +352,6 @@ class CRM_Attentively_BAO_Attentively {
       }
       elseif ($dao->name != 'klout') {
         $network[$dao->name]['url'] = $dao->url;
-        $network[$dao->name]['image'] = '<img class="network-image" src="' .$config->extensionsURL. '/biz.jmaconsulting.attentively/images/' .$dao->name. '.png" style="width:80px !important; height:80px !important;"/>';
         $network[$dao->name]['image'] = '<img class="network-image" src="' .$dao->icon. '" />';
       }
       if ($dao->photo != '' && $dao->name != 'gravatar') {
