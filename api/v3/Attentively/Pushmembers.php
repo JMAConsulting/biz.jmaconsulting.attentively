@@ -13,7 +13,7 @@ function civicrm_api3_attentively_pushmembers() {
   $result = CRM_Attentively_BAO_Attentively::pushMembers();
   if (!is_array($result)) {
     if ($result) {
-      return civicrm_api3_create_success(ts('Total contacts pushed to Attentive.ly: ' . $count));
+      return civicrm_api3_create_success(ts('Total contacts pushed to Attentive.ly: ' . $result));
     }
     else {
       return civicrm_api3_create_success(ts('No contacts were sent to Attentive.ly!'));
