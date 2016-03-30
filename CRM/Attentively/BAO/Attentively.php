@@ -321,7 +321,17 @@ class CRM_Attentively_BAO_Attentively {
     if (empty($terms)) {
       return array('error' => ts('You have not specified any watched terms. Please specify them at Administer >> System Settings >> Option Groups >> Attentive.ly Watched Terms'));
     }
-    $terms = '&terms=' . implode(',' , $terms);
+    // First get all watched terms.
+    self::pullWatchedTerms();
+    $dao = CRM_Core_DAO::executeQuery("SELECT term, nickname FROM civicrm_attentively_watched_terms");
+    while ($dao->fetch()) {
+      $savedTerms[$dao->nickname] = $dao->term;
+    }
+    $terms = array_diff($terms, $savedTerms); // Send only those terms which are not present on Attentive.ly
+    if (empty($terms)) {
+      return array('error' => ts('All of the terms specified exist in Attentive.ly.'));
+    }
+    $terms = '&terms=' . implode(',', $terms);
     $result = self::getAttentivelyResponse('watched_terms_add', $terms); 
     if ($result['success']) {
       return count($result['parameters']->terms);
