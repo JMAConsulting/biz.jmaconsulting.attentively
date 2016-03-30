@@ -106,4 +106,19 @@ function attentively_civicrm_pageRun(&$page) {
       CRM_Utils_System::redirect(CRM_Utils_System::url('civicrm/auth', "reset=1"));
     }
   }
+  if (get_class($page) == 'CRM_Admin_Page_OptionValue' && $page->getVar('_gName') == 'attentively_terms') {
+    CRM_Core_Region::instance('page-body')->add(array(
+      'template' => 'CRM/Attentively/WatchedTerms.tpl',
+    ));
+  }
+}
+
+/**
+ * Implements hook_civicrm_buildForm().
+ */
+function attentively_civicrm_buildForm($formName, &$form) {
+  if ($formName == 'CRM_Admin_Form_OptionValue' && $form->getVar('_gName') == 'attentively_terms') {
+    $form->add('text', 'label', ts('Term'), CRM_Core_DAO::getAttribute('CRM_Core_DAO_OptionValue', 'label'), TRUE);
+    $form->add('text', 'value', ts('Nickname'), CRM_Core_DAO::getAttribute('CRM_Core_DAO_OptionValue', 'value'), TRUE);
+  }
 }
