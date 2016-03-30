@@ -248,13 +248,13 @@ class CRM_Attentively_BAO_Attentively {
     $allTerms = $allTermsNick = '';
     CRM_Attentively_BAO_AttentivelyWatchedTerms::getWatchedTerms($terms);
     $watchedTerms = CRM_Core_OptionGroup::values('attentively_terms', FALSE, FALSE, FALSE, NULL, 'label', FALSE);
+    foreach ($watchedTerms as $key => $ind) {
+      $terms[$key]['term'] = $key;
+      $terms[$key]['nickname'] = $ind;
+    }
     foreach ($terms as $term) {
       $allTerms .= $term['term'] . ',';
       $allTermsNick .= $term['nickname'] . ',';
-    }
-    foreach ($watchedTerms as $ind) {
-      $terms[$ind]['term'] = $ind;
-      $terms[$ind]['nickname'] = $ind;
     }
     if (empty($allTerms)) {
       return array('error' => ts('You must specify watched terms before you can pull posts. Please specify them at Administer >> System Settings >> Option Groups >> Attentive.ly Watched Terms'));
@@ -265,8 +265,10 @@ class CRM_Attentively_BAO_Attentively {
  
     if ($result['success']) {
       // Store posts
+      $count = 0;
       foreach ($result['posts'] as $key => $value) {
-        $check = CRM_Core_DAO::singleValueQuery("SELECT 1 FROM civicrm_attentively_posts WHERE post_timestamp = {$value->post_timestamp}");
+        $check = CRM_Core_DAO::singleValueQuery("SELECT 1 FROM civicrm_attentively_posts
+          WHERE post_timestamp = '{$value->post_timestamp}' AND member_id = '{$value->member_id}' AND network = '{$value->network}'");
         if ($check)
           continue;
         // Add contacts with no contact ID
@@ -302,12 +304,13 @@ class CRM_Attentively_BAO_Attentively {
           VALUES ( '{$value->member_id}', '{$value->contact_id}', '{$value->network}', %1, %2, '{$value->post_timestamp}', %3)";
         $params = array( 
           1 => array($value->post_content, 'String'),
-          2 => array(date('Y-m-d H:i:s', strtotime($value->post_date)), 'String'),
+          2 => array(date('Y-m-d H:i:s', $value->post_timestamp), 'String'),
           3 => array($value->post_url, 'String'),
         );
         $dao = CRM_Core_DAO::executeQuery($sql, $params);
+        $count++;
       }
-      return count($result['posts']);
+      return $count;
     }
     else {
       $errors[] = $result['error'];
