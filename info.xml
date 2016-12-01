@@ -5,7 +5,7 @@
   <description>Attentive.ly Social Media Integration</description>
   <urls>
     <url desc="Support">https://github.com/JMAConsulting/biz.jmaconsulting.attentively/issues?state=open</url>
-    <url desc="Installation Instructions">https://github.com/JMAConsulting/https://github.com/JMAConsulting/biz.jmaconsulting.attentively</url>
+    <url desc="Installation Instructions">https://github.com/JMAConsulting/biz.jmaconsulting.attentively</url>
   </urls>
   <license>AGPL-3.0</license>
   <maintainer>
@@ -17,6 +17,8 @@
   <develStage>beta</develStage>
   <compatibility>
     <ver>4.5</ver>
+    <ver>4.6</ver>
+    <ver>4.7</ver>
   </compatibility>
   <comments>This extension integrates CiviCRM with the Attentive.ly social media service. Attentive.ly helps to convert contacts into engaged advocates. Attentive.ly allows you to easily personalize messages, asks, and ads based on what your contacts are doing and saying across the social web. Track keywords like your organization and campaigns. Search the posts of your users. Identify VIP influencers in your list for special outreach and engagement. See what's trending among your contacts rather than the broader social media universe. </comments>
   <civix>
