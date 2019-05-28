@@ -1,6 +1,8 @@
 biz.jmaconsulting.attentively
 =============================
 
+NB: This extension depends on an API that is no longer provided by attentive.ly and so *_DOES NOT WORK_* and is no longer maintained. It is left here in case anyone finds parts of it useful for other projects.
+
 Installation
 ------------
 
