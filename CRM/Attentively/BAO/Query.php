@@ -213,7 +213,6 @@ class CRM_Attentively_BAO_Query extends CRM_Contact_BAO_Query_Interface {
     $networks = CRM_Attentively_BAO_Attentively::getNetworkList();
     foreach ($value as $dontCare => $pOption) {
       $clauses[] = " ( civicrm_attentively_member_network.name $compareOP '{$pOption}' ) ";
-      $field = CRM_Utils_Array::value($pOption, $this->getFields());
       $title = CRM_Utils_Array::value($pOption, $networks, $pOption);
       $qill[] = " Social Media $compareOP $title ";
     }
