@@ -46,7 +46,7 @@ class CRM_Attentively_BAO_Attentively {
   }
   
   static public function updateAttentivelyAuth($params) {
-    $accessToken = CRM_Utils_Array::value('access_token', $params);
+    $accessToken = $params['access_token'] ?? NULL;
     if ($accessToken) {
       CRM_Core_DAO::singleValueQuery("UPDATE civicrm_option_value SET value = '{$accessToken}' WHERE name = 'access_token'");
     }
